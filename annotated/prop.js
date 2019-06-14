@@ -78,6 +78,14 @@ $P.Prop = class extends $P.Base {
     return this._stage;
   }
 
+  get index() {
+    if (this.stage) {
+      return this.stage.props.indexOf(this);
+    } else {
+      return -1;
+    }
+  }
+
 
   move(vect) {
     this._x += vect.x;
