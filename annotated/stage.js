@@ -11,15 +11,40 @@ $P.Stage = class extends $P.Base {
   }
 
 
-  addProp(prop, quiet = false) { //Add prop to stage
-    let len = this._props.push(prop); //Add prop to props array
+  addProp(prop, index = -1, quiet = false) { //Add prop to stage
+    let len;
+    if (index >= 0) { //insert prop at specific index if provided
+      this._props.splice(index, 0, prop); //Add prop at index
+      len = this._props.length; //Get length
+    } else {
+      len = this._props.push(prop); //Add prop && get length
+    }
     prop.stage = this; //set prop's stage as this stage
     prop.init(quiet); //Init the prop
-    return len - 1; //Return the index of the prop
+    return len; //Return the length of props array
+  }
+
+  addProps(arr, index = -1, quiet = false) { //Add array of props to stage
+    let len;
+
+    if (index >= 0) { //Add props at specific index
+      for (var i in arr) { //Iterate through array
+        this._props.splice(index, 0, arr[i]); //Add prop
+        arr[i].stage = this; //Set prop stage
+        arr[i].init(quiet); //Init prop
+      }
+    } else { //Push props to end
+      for (var i in arr) { //Iterate through array
+        this._props.push(arr[i]); //Add prop
+        arr[i].stage = this; //Set prop stage
+        arr[i].init(quiet); //Init prop
+      }
+    }
+    return this._props.length; //Return length of props array
   }
 
   removeProp(prop, quiet = false) { //Remove by direct comparison
-    let index = this._props.indexOf(prop); //Get index of prop
+    let index = prop.index; //Get index of prop
 
     if (index !== -1) { //index will = -1 if prop is not in props array
       this._props[index].destroy(quiet); //Call destroy function of prop in question
@@ -53,6 +78,19 @@ $P.Stage = class extends $P.Base {
     }
 
     return false; //Return false for failure
+  }
+
+  moveProp(curIndex, newIndex) { //Move prop in props array (emulates z-index due to for/in function)
+    let prop = this._props.splice(curIndex, 1)[0];
+    let index;
+
+    if (newIndex < 0 || newIndex >= this._props.length) {
+      index = this._props.push(prop) - 1;
+      return index;
+    }
+
+    this._props.splice(newIndex, 0, prop);
+    return newIndex;
   }
 
 
