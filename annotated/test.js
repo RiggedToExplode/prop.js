@@ -39,6 +39,7 @@ Box3.name = "Box3"
 
 world.addProps([Box, Box2, Box3]);
 var cam = new $P.Camera(world, canvas);
+cam.scale = new $P.Coord(1, 1);
 
 window.setInterval(function() {
   cam.draw()
