@@ -14,6 +14,10 @@ $P = {
     }
   },
   Coord: class { //Basic class to store two coordinates
+    static addCoords(coord1, coord2) { //Static method to add two coord objects
+      return new $P.Coord(coord1.x + coord2.x, coord1.y + coord2.y);
+    }
+
     constructor(x, y) {
       this._x = x;
       this._y = y;

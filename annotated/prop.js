@@ -118,8 +118,16 @@ $P.Prop = class extends $P.Base {
     }
   }
 
+  beforeUpdate(dt) {
+
+  }
+
   update(dt) { //default update function
     this.rotateDegrees($P.Prop.perSecond(180) * dt);
+  }
+
+  afterUpdate(dt) {
+
   }
 
   draw(ctx, rel) { //default draw function
