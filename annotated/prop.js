@@ -118,7 +118,7 @@ $P.Prop = class extends $P.Base {
     }
   }
 
-  beforeUpdate(dt) {
+  beforeUpdate() {
 
   }
 
@@ -126,7 +126,7 @@ $P.Prop = class extends $P.Base {
     this.rotateDegrees($P.Prop.perSecond(180) * dt);
   }
 
-  afterUpdate(dt) {
+  afterUpdate() {
 
   }
 
@@ -154,7 +154,7 @@ $P.Prop = class extends $P.Base {
     ctx.restore();
   }
 
-  init(quiet) {}
+  init() {}
 
-  destroy(quiet) {}
+  destroy() {}
 }
