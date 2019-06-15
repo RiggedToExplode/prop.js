@@ -22,6 +22,14 @@ $P.Prop = class extends $P.Base {
   }
 
 
+  set _x(x) {
+    this._pos.x = x;
+  }
+
+  set _y(y) {
+    this._pos.y = y;
+  }
+
   set x(x) { //set x coord
     this._pos.x = x;
   }
@@ -48,6 +56,14 @@ $P.Prop = class extends $P.Base {
 
   set stage(stage) { //set stage
     this._stage = stage;
+  }
+
+  get _x() {
+    return this._pos.x;
+  }
+
+  get _y() {
+    return this._pos.y;
   }
 
   get x() { //get x coord
