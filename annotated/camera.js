@@ -27,24 +27,8 @@ $P.Camera = class extends $P.Base {
     this._stage = stage;
   }
 
-  set stageX(x) {
-    this._stagePos.x = x;
-  }
-
-  set stageY(y) {
-    this._stagePos.y = y;
-  }
-
   set stagePos(pos) {
     this._stagePos = pos;
-  }
-
-  set canvasX(x) {
-    this._canvasPos.x = x;
-  }
-
-  set canvasY(y) {
-    this._canvasPos.y = y;
   }
 
   set canvasPos(pos) {
@@ -61,14 +45,6 @@ $P.Camera = class extends $P.Base {
 
   set dimensions(dimensions) {
     this._dimensions = dimensions;
-  }
-
-  set scaleX(x) {
-    this._scale.x = x;
-  }
-
-  set scaleY(y) {
-    this._scale.y = y;
   }
 
   set scale(scale) {
@@ -99,24 +75,8 @@ $P.Camera = class extends $P.Base {
     return this._stage;
   }
 
-  get stageX() {
-    return this._stagePos.x;
-  }
-
-  get stageY() {
-    return this._stagePos.y;
-  }
-
   get stagePos() {
     return this._stagePos;
-  }
-
-  get canvasX() {
-    return this._canvasPos.x;
-  }
-
-  get canvasY() {
-    return this._canvasPos.y;
   }
 
   get canvasPos() {
@@ -133,14 +93,6 @@ $P.Camera = class extends $P.Base {
 
   get dimensions() {
     return this._dimensions;
-  }
-
-  get scaleX() {
-    return this._scale.x;
-  }
-
-  get scaleY() {
-    return this._scale.y;
   }
 
   get scale() {
