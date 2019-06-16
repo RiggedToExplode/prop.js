@@ -5,6 +5,8 @@ $P.PhysicsProp = class extends $P.Prop {
         this._mass = mass;
         this._velocity = new $P.Coord(0, 0);
         this._angularVelocity = 0;
+        this._velocityDecay = 0.99;
+        this._angularDecay = 0.99;
     }
 
 
@@ -20,6 +22,14 @@ $P.PhysicsProp = class extends $P.Prop {
         this._angularVelocity = angularVelocity;
     }
 
+    set velocityDecay(velocityDecay) {
+        this._velocityDecay = velocityDecay;
+    }
+
+    set angularDecay(angularDecay) {
+        this._angularDecay = angularDecay;
+    }
+
     get mass() {
         return this._mass;
     }
@@ -30,6 +40,14 @@ $P.PhysicsProp = class extends $P.Prop {
 
     get angularVelocity() {
         return this._angularVelocity;
+    }
+
+    get velocityDecay() {
+        return this._velocityDecay;
+    }
+
+    get angularDecay() {
+        return this._angularDecay;
     }
 
 
@@ -43,6 +61,10 @@ $P.PhysicsProp = class extends $P.Prop {
     }
 
     update(dt) {
+        this._velocity = $P.Coord.multCoord(this._velocity, this._velocityDecay);
+        this._angularVelocity = $P.Coord.multCoord(this._angularVelocity, this._angularDecay);
+
+
         this._pos.x += this._velocity.x * dt;
         this._pos.y += this._velocity.y * dt;
 
