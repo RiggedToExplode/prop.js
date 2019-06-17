@@ -94,7 +94,15 @@ $P.Stage = class extends $P.Base {
 
   update(dt) { //Cascading update function
     for (var i in this._props) {
+      this._props[i].beforeUpdate(dt);
+    }
+
+    for (i in this._props) {
       this._props[i].update(dt);
+    }
+
+    for (i in this._props) {
+      this._props[i].afterUpdate(dt);
     }
 
     return true;
