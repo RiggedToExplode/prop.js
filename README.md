@@ -1,5 +1,5 @@
 # prop.js
-Prop.js is a lightweight framework to manage drawing on the canvas via the application of "stage", "prop", and "camera" objects. Further functionality such as basic physics or player management is added through the creation of modules which extend upon the base framework. The goal of Prop.js is to be extendable via direct modification or extension of the base classes. Check the wiki for documentation and explanations.
+Prop.js is a lightweight framework to manage drawing on the canvas via the application of "stage", "prop", and "camera" objects. Further functionality such as basic physics or player management is added through the creation of modules which extend upon the base framework. The goal of Prop.js is to be extendable via direct modification or extension of the base classes. Check the wiki or `annotated` directory for documentation and explanations.
 
 ## Getting Started
 Prop.js is meant to be used in a browser environment, but should function in any environment that uses the same Canvas API as standard browsers.
