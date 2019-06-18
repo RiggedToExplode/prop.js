@@ -67,6 +67,6 @@ $P.PhysicsProp = class extends $P.Prop {
         this._radians += this._angularVelocity * dt;
 
         this._velocity = $P.Coord.multCoord(this._velocity, this._velocityDecay);
-        this._angularVelocity = $P.Coord.multCoord(this._angularVelocity, this._angularDecay);
+        this._angularVelocity = this._angularVelocity * this._angularDecay;
     }
 }
