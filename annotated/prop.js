@@ -147,9 +147,6 @@ $P.Prop = class extends $P.Base {
   }
 
   draw(ctx, rel) { //default draw function
-    ctx.strokeStyle = "black";
-    ctx.fillStyle = "green";
-
     ctx.save()
 
     ctx.translate(rel.x, rel.y)

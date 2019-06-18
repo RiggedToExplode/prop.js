@@ -139,6 +139,9 @@ $P.Camera = class extends $P.Base {
 
     this._ctx.scale(this._scale.x, this._scale.y);
 
+    this._ctx.strokeStyle = "black";
+    this._ctx.fillStyle = "green";
+
     for (var i in this._stage.props) {
       let prop = this._stage.props[i];
       let rel = new $P.Coord(prop.x - this._stagePos.x, prop.y - this._stagePos.y);
