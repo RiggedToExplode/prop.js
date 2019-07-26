@@ -117,37 +117,36 @@ $P.Camera = class extends $P.Base {
 
 
   draw() {
-    this._ctx.save();
+    this._ctx.save(); //Save the context because we will probably be scaling it.
 
-    this._ctx.beginPath();
+    this._ctx.beginPath(); //Begin path for cleanliness
 
-    if (this._back) {
+    if (this._back) { //Fill a background if the camera has a background color
       this._ctx.fillStyle = this._back;
       this._ctx.fillRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y);
     }
 
-    if (this._stroke) {
+    if (this._stroke) { //Outline the camera if the camera has an outline color
       this._ctx.strokeStyle = this._back;
       this._ctx.lineWidth = this._lineWidth;
       this._ctx.strokeRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y);
     }
 
-    if (this._clip) {
+    if (this._clip) { //If camera has clip enabled, clip the canvas.
       this._ctx.rect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y);
       this._ctx.clip();
     }
 
-    this._ctx.scale(this._scale.x, this._scale.y);
+    this._ctx.scale(this._scale.x, this._scale.y); //Scale the context using this camera's scale value
 
-    this._ctx.strokeStyle = "black";
+    this._ctx.strokeStyle = "black"; //Default fill and stroke color for any props drawn
     this._ctx.fillStyle = "green";
 
     for (var i in this._stage.props) {
-      let prop = this._stage.props[i];
-      let rel = new $P.Coord(prop.x - this._stagePos.x, prop.y - this._stagePos.y);
-      rel.x += this._canvasPos.x / this._scale.x;
-      rel.y += this._canvasPos.y / this._scale.y;
-
+      let prop = this._stage.props[i]; //Store the current prop for easy access
+      let rel = $P.Coord.addCoords(prop.pos, $P.Coord.multCoord(this._stagePos, -1)); //Set rel equal to the difference between the camera position and the current prop position
+      rel = $P.Coord.addCoords(rel, $P.Coord.divCoords(this._canvasPos, this._scale)); //Manipulate rel.y to be relative to the canvas
+      
       prop.draw(this._ctx, rel);
     }
 

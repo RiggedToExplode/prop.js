@@ -18,8 +18,20 @@ $P = {
       return new $P.Coord(coord1.x + coord2.x, coord1.y + coord2.y);
     }
 
-    static multCoord(coord, factor) {
+    static multCoord(coord, factor) { //Static method to multiply a coord object by a number
       return new $P.Coord(coord.x * factor, coord.y * factor);
+    }
+
+    static multCoords(coord1, coord2) { //Static method to multiply two coord objects together
+      return new $P.Coord(coord1.x * coord2.x, coord1.y * coord2.y);
+    }
+
+    static divCoords(coord1, coord2) { //Static method to divide two coord objects
+      return new $P.Coord(coord1.x / coord2.x, coord1.y / coord2.y);
+    }
+
+    static dist(coord1, coord2) {
+      return Math.sqrt(Math.pow(coord2.x - coord1.x, 2) + Math.pow(coord2.y - coord1.y, 2));
     }
 
 
