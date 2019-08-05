@@ -1,4 +1,4 @@
-if (!$P.keys) {
+if (!$P.keyCodes) {
   throw new Error("Player module requires keyCodes module!");
 }
 

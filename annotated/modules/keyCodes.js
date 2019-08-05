@@ -1,13 +1,13 @@
-$P.keys = [];
+$P.keyCodes = [];
 
 window.addEventListener("keydown",
-    function(e){
-        $P.keys[e.keyCode] = true;
+    function(e) {
+        $P.keyCodes[e.keyCode] = true;
     },
 false);
 
 window.addEventListener('keyup',
-    function(e){
-        $P.keys[e.keyCode] = false;
+    function(e) {
+        $P.keyCodes[e.keyCode] = false;
     },
 false);
