@@ -10,6 +10,7 @@ var cam = new $P.Camera(stage, canvas); //Create a camera that draws from Stage 
 
 var box = new $P.Prop(); //Create a new Prop. By default, the Prop is placed at the origin and is a 20px by 20px green box.
 box.update = function(dt /* # of milliseconds since update was last called */) {
+  //We are directly modifying the prop's update function in order to change how it moves.
   this.rotateDegrees($P.Prop.perSecond(180)/* static method that simply returns the input/1000 for readability */ * dt);
 }
 
