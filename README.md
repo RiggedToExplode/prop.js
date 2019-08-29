@@ -3,7 +3,8 @@ Prop.js is a lightweight framework to manage drawing on the canvas via the appli
 
 ## Why?
 Prop.js differs from other drawing/creation frameworks in two main ways: the analogy and the modularity. Where other frameworks provide integrated features such as a physics engine or sprite management, Prop.js provides these features as separate modules. The end user can then customize Prop.js to their specific needs, and reduce the overall size of their project. Prop.js is also named and based around the analogy of a stage for a movie or show: the "stage" contains and manages all of the "props"  that are currently in the play, while the "camera" moves separately and records the happenings of the stage. This analogy is evident in the following code:
-`var stage = new $P.Stage(); //Create the stage we will be working with.
+```javascript
+var stage = new $P.Stage(); //Create the stage we will be working with.
 var canvas = new $P.Canvas("canvas"); //Create a canvas object with the id of the canvas in the DOM.
 var cam = new $P.Camera(stage, canvas); //Create a camera that draws from Stage "stage" and draws onto Canvas "canvas".
 
@@ -18,7 +19,8 @@ $P.updateLoop(stage); //Set Stage "stage" to start updating using the updateLoop
 
 window.setInterval(function () { //Use setInterval to tell Camera "cam" to draw.
   cam.draw(); //Tell Camera "cam" to draw onto the Canvas "canvas".
-}, 33 /* Draw every 33 milliseconds, or about 30 fps */);`
+}, 33 /* Draw every 33 milliseconds, or about 30 fps */);
+```
 
 ## Getting Started
 Prop.js is meant to be used in a browser environment, but should function in any environment that uses the same Canvas API as standard browsers.
