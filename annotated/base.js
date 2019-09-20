@@ -18,12 +18,16 @@ $P = {
       return new $P.Coord(coord1.x + coord2.x, coord1.y + coord2.y);
     }
 
-    static multCoord(coord, factor) {
+    static multCoord(coord, factor) { //Static method to multiply a coord by a factor.
       return new $P.Coord(coord.x * factor, coord.y * factor);
     }
 
+    static multCoords(coord1, coord2) { //Static method to multiply two coords together.
+      return new $P.Coord(coord1.x * coord2.x, coord1.y * coord2.y);
+    }
 
-    constructor(x, y) {
+
+    constructor(x = 0, y = 0) {
       this._x = x;
       this._y = y;
     }
@@ -45,6 +49,9 @@ $P = {
       return this._y;
     }
 
+    copy() { //Method to return new Coord with same ordered pair as this one.
+      return new $P.Coord(this._x, this._y);
+    }
 
     toArr() { //Method to return Coord object in array
       return [this._x, this._y];
@@ -84,7 +91,7 @@ $P = {
       return this._el;
     }
   },
-  updateLoop: function(stage, interval = 8) { //Function to initiate an update loop.
+  updateLoop: function(stage, interval = 4) { //Function to initiate an update loop.
     var lastUpdate = Date.now(); //Set the last update.
 
     window.setInterval(function() {

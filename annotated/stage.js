@@ -11,6 +11,10 @@ $P.Stage = class extends $P.Base {
   }
 
 
+  getIndex(prop) { //Get index of prop in the stage's _props array.
+    return this._props.indexOf(prop);
+  }
+
   addProp(prop, index = -1, quiet = false) { //Add prop to stage
     let len;
     if (index >= 0) { //insert prop at specific index if provided
@@ -26,8 +30,8 @@ $P.Stage = class extends $P.Base {
 
   addProps(arr, index = -1, quiet = false) { //Add array of props to stage
     if (index >= 0) { //Add props at specific index
-      for (var i in arr) { //Iterate through array
-        this._props.splice(index, 0, arr[i]); //Add prop
+      for (var i in arr) { //Iterate through given array
+        this._props.splice(index, 0, arr[i]); //Add prop at given index
         arr[i].stage = this; //Set prop stage
         arr[i].init(quiet); //Init prop
       }

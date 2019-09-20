@@ -7,7 +7,7 @@ $P.Prop = class extends $P.Base {
     return (degrees / 180) * Math.PI;
   }
 
-  static perSecond(val) { //Static conversion utility for readability
+  static perSecond(val) { //Static conversion utility for readability.
     return val / 1000;
   }
 
@@ -112,20 +112,20 @@ $P.Prop = class extends $P.Base {
 
 
   move(vect) {
-    this._x += vect.x;
-    this._y += vect.y;
+    this._pos = $P.Coord.addCoords(this._pos, vect);
+    return this._pos;
   }
 
   rotate(radians) {
     this._radians += radians;
     if (this._radians >= 2 * Math.PI) {
       this._radians -= 2 * Math.PI;
-      return;
+      return this._radians;
     }
 
     if (this._radians < 0) {
       this._radians += 2 * Math.PI;
-      return;
+      return this._radians;
     }
   }
 
@@ -133,12 +133,12 @@ $P.Prop = class extends $P.Base {
     this._degrees += degrees;
     if (this._radians >= 2 * Math.PI) {
       this._radians -= 2 * Math.PI;
-      return;
+      return this._degrees;
     }
 
     if (this._radians < 0) {
       this._radians += 2 * Math.PI;
-      return;
+      return this._degrees;
     }
   }
 

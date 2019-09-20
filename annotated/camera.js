@@ -115,43 +115,48 @@ $P.Camera = class extends $P.Base {
     return this._lineWidth;
   }
 
+  center(coord) { //Center the Camera on a given stage position
+    this._stagePos.x = coord.x - this._dimensions.x / 2; //Center the x position
+    this._stagePos.y = coord.y - this._dimensions.y / 2; //Center the y position
+    return this._stagePos; //Return the new position
+  }
 
   draw() {
-    this._ctx.save();
+    this._ctx.save(); //Save the context because we will be doing rotations, etc.
 
-    this._ctx.beginPath();
+    this._ctx.beginPath(); //Begin the path
 
-    if (this._back) {
-      this._ctx.fillStyle = this._back;
-      this._ctx.fillRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y);
+    if (this._back) { //If we have a background color, draw it.
+      this._ctx.fillStyle = this._back; //Set color
+      this._ctx.fillRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y); //Draw the background
     }
 
-    if (this._stroke) {
-      this._ctx.strokeStyle = this._back;
-      this._ctx.lineWidth = this._lineWidth;
-      this._ctx.strokeRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y);
+    if (this._stroke) { //If we have a stroke color, draw it.
+      this._ctx.strokeStyle = this._stroke; //Set the color
+      this._ctx.lineWidth = this._lineWidth; //Set the width
+      this._ctx.strokeRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y); //Draw the outline
     }
 
-    if (this._clip) {
-      this._ctx.rect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y);
-      this._ctx.clip();
+    if (this._clip) { //If this Camera is set to clip, then clip.
+      this._ctx.rect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y); //Set the rectangle
+      this._ctx.clip(); //Clip the drawing
     }
 
-    this._ctx.scale(this._scale.x, this._scale.y);
+    this._ctx.scale(this._scale.x, this._scale.y); //Scale the context
 
-    this._ctx.strokeStyle = "black";
-    this._ctx.fillStyle = "green";
+    this._ctx.strokeStyle = "black"; //Set default stroke value for Props
+    this._ctx.fillStyle = "green"; //Set default fill value for Props
 
-    for (var i in this._stage.props) {
-      let prop = this._stage.props[i];
-      let rel = new $P.Coord(prop.x - this._stagePos.x, prop.y - this._stagePos.y);
-      rel.x += this._canvasPos.x / this._scale.x;
+    for (var i in this._stage.props) { //For each Prop
+      let prop = this._stage.props[i]; //Save the prop for readability
+      let rel = new $P.Coord(prop.x - this._stagePos.x, prop.y - this._stagePos.y); //Set rel as the distance the Prop is from the Camera's stagePos
+      rel.x += this._canvasPos.x / this._scale.x; //Add the Camera's position on the Canvas to the rel value and scale the value up/down by the Camera's scale
       rel.y += this._canvasPos.y / this._scale.y;
 
-      prop.draw(this._ctx, rel);
+      prop.draw(this._ctx, rel); //Tell the Prop to draw itself, and pass the important parameters.
     }
 
-    this._ctx.closePath();
-    this._ctx.restore();
+    this._ctx.closePath(); //Close the path
+    this._ctx.restore(); //Restore the context
   }
 }
