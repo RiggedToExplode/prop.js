@@ -1,4 +1,4 @@
-keyCodes = []; //Declare keyCodes array
+$P.keyCodes = []; //Declare keyCodes array
 
 window.addEventListener("keydown",
     function(e) {
@@ -11,5 +11,3 @@ window.addEventListener('keyup',
         keyCodes[e.keyCode] = false; //Set a key to false when that key is released
     },
 false);
-
-export default keyCodes; //Export the array.

@@ -1,6 +1,4 @@
-import $P from 'https://riggedtoexplode.github.io/framework/prop.js';
-
-var mouse = { //Declare the mouse object
+$P.mouse = { //Declare the mouse object
     left: false, //State of left mouse button
     middle: false, //State of middle mouse button
     right: false, //State of right mouse button
@@ -45,5 +43,3 @@ window.addEventListener("mousemove",
         mouse.pos.y = e.clientY;
     },
 false);
-
-export default mouse;
