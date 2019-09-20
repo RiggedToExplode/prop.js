@@ -144,10 +144,10 @@ $P.Camera = class extends $P.Base {
 
     this._ctx.scale(this._scale.x, this._scale.y); //Scale the context using this camera's scale value
 
-    this._ctx.strokeStyle = "black"; //Default fill and stroke color for any props drawn
-    this._ctx.fillStyle = "green";
-
     for (var i in this._stage.props) {
+      this._ctx.strokeStyle = "black"; //Default fill and stroke color for any props drawn
+      this._ctx.fillStyle = "green";
+
       let prop = this._stage.props[i]; //Store the current prop for easy access
       let rel = $P.Coord.addCoords(prop.pos, $P.Coord.multCoord(this._stagePos, -1)); //Set rel equal to the difference between the camera position and the current prop position
       rel = $P.Coord.addCoords(rel, $P.Coord.divCoords(this._canvasPos, this._scale)); //Manipulate rel.y to be relative to the canvas
