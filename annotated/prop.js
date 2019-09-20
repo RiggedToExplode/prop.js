@@ -30,6 +30,10 @@ $P.Prop = class extends $P.Base {
     this._pos.y = y;
   }
 
+  set pos(pos) {
+    this._pos = pos;
+  }
+
   set x(x) { //set x coord
     this._pos.x = x;
   }
@@ -64,6 +68,10 @@ $P.Prop = class extends $P.Base {
 
   get _y() {
     return this._pos.y;
+  }
+
+  get pos() {
+    return this._pos;
   }
 
   get x() { //get x coord
@@ -157,7 +165,7 @@ $P.Prop = class extends $P.Base {
   draw(ctx, rel) { //default draw function
     ctx.save()
 
-    ctx.translate(rel.x, rel.y)
+    ctx.translate(rel.x, rel.y);
     ctx.rotate(this._radians);
 
     ctx.beginPath();

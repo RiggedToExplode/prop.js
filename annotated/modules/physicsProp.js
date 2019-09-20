@@ -5,8 +5,8 @@ $P.PhysicsProp = class extends $P.Prop {
         this._mass = mass;
         this._velocity = new $P.Coord(0, 0);
         this._angularVelocity = 0;
-        this._velocityDecay = 0.99;
-        this._angularDecay = 0.99;
+        this._resistance = 0.99;
+        this._angularResistance = 0.99;
     }
 
 
@@ -22,12 +22,12 @@ $P.PhysicsProp = class extends $P.Prop {
         this._angularVelocity = angularVelocity;
     }
 
-    set velocityDecay(velocityDecay) {
-        this._velocityDecay = velocityDecay;
+    set resistance(resistance) {
+        this._resistance = resistance;
     }
 
-    set angularDecay(angularDecay) {
-        this._angularDecay = angularDecay;
+    set angularResistance(angularResistance) {
+        this._angularResistance = angularResistance;
     }
 
     get mass() {
@@ -42,31 +42,38 @@ $P.PhysicsProp = class extends $P.Prop {
         return this._angularVelocity;
     }
 
-    get velocityDecay() {
-        return this._velocityDecay;
+    get resistance() {
+        return this._resistance;
     }
 
-    get angularDecay() {
-        return this._angularDecay;
+    get angularResistance() {
+        return this._angularResistance;
     }
 
 
     accelerate(vect) {
-        this._velocity.x += vect.x;
-        this._velocity.y += vect.y;
+        this._velocity = $P.Coord.addCoords(this._velocity, vect);
     }
 
     angularAccelerate(val) {
         this._angularVelocity += val;
     }
 
+    push(vect) {
+        this.accelerate($P.Coord.multCoord(vect, 1 / this._mass));
+    }
+
+    angularPush(val) {
+        this.angularAccelerate(val / this._mass);
+    }
+
+
     update(dt) {
-        this._pos.x += this._velocity.x * dt;
-        this._pos.y += this._velocity.y * dt;
+        this.move($P.Coord.multCoord(this._velocity, dt));
 
-        this._radians += this._angularVelocity * dt;
+        this.rotate(this._angularVelocity * dt);
 
-        this._velocity = $P.Coord.multCoord(this._velocity, this._velocityDecay);
-        this._angularVelocity = this._angularVelocity * this._angularDecay;
+        this.push($P.Coord.multCoord(this._velocity, -1 * this._resistance));
+        this.angularPush(this._angularVelocity * (-1 * this._angularResistance));
     }
 }

@@ -1,4 +1,4 @@
-if (!$P.keys) {
+if (!$P.keyCodes) {
   throw new Error("Player module requires keyCodes module!");
 }
 
@@ -9,30 +9,30 @@ if (!$P.PhysicsProp) {
 $P.playerPilotTypes = [
   function () {
     if ($P.keys[this._controls.up]) {
-      this.accelerate(new $P.Coord(0, -this._acceleration));
+      this.push(new $P.Coord(0, -this._force));
     }
     if ($P.keys[this._controls.right]) {
-      this.accelerate(new $P.Coord(this._acceleration, 0));
+      this.push(new $P.Coord(this._force, 0));
     }
     if ($P.keys[this._controls.down]) {
-      this.accelerate(new $P.Coord(0, this._acceleration));
+      this.push(new $P.Coord(0, this._force));
     }
     if ($P.keys[this._controls.left]) {
-      this.accelerate(new $P.Coord(-this._acceleration, 0));
+      this.push(new $P.Coord(-this._force, 0));
     }
   },
   function () {
     if ($P.keys[this._controls.left]) {
-      this.angularAccelerate(-this._angularAcceleration);
+      this.angularPush(-this._angularForce);
     }
     if ($P.keys[this._controls.right]) {
-      this.angularAccelerate(this._angularAcceleration);
+      this.angularPush(this._angularForce);
     }
     if ($P.keys[this._controls.up]) {
-      this.accelerate(new $P.Coord(this._acceleration * Math.sin(this._radians), -this._acceleration * Math.cos(this._radians)));
+      this.push(new $P.Coord(this._force * Math.sin(this._radians), -this._force * Math.cos(this._radians)));
     }
     if ($P.keys[this._controls.down]) {
-      this.accelerate(new $P.Coord(-this._acceleration * Math.sin(this._radians), this._acceleration * Math.cos(this._radians)));
+      this.push(new $P.Coord(-this._force * Math.sin(this._radians), this._force * Math.cos(this._radians)));
     }
   }
 ]
@@ -41,8 +41,8 @@ $P.Player = class extends $P.PhysicsProp {
   constructor(pos = new $P.Coord(0, 0), mass = 100) {
     super(pos, mass);
 
-    this._acceleration = 0.005;
-    this._angularAcceleration = 0.0005;
+    this._force = 0.005;
+    this._angularForce = 0.0005;
     this._controls = {
       up: '38',
       down: '40',
@@ -53,12 +53,12 @@ $P.Player = class extends $P.PhysicsProp {
   }
 
 
-  set acceleration(acc) {
-    this._acceleration = acc;
+  set force(force) {
+    this._force = force;
   }
 
-  set angularAcceleration(acc) {
-    this._angularAcceleration = acc;
+  set angularForce(force) {
+    this._angularForce = force;
   }
 
   set controls(controls) {
@@ -81,12 +81,12 @@ $P.Player = class extends $P.PhysicsProp {
     this._pilotType = type;
   }
 
-  get acceleration() {
-    return this._acceleration;
+  get force() {
+    return this._force;
   }
 
-  get angularAcceleration() {
-    return this._angularAcceleration;
+  get angularForce() {
+    return this._angularForce;
   }
 
   get controls() {

@@ -122,38 +122,37 @@ $P.Camera = class extends $P.Base {
   }
 
   draw() {
-    this._ctx.save(); //Save the context because we will be doing rotations, etc.
+    this._ctx.save(); //Save the context because we will probably be scaling it.
 
-    this._ctx.beginPath(); //Begin the path
+    this._ctx.beginPath(); //Begin path for cleanliness
 
-    if (this._back) { //If we have a background color, draw it.
-      this._ctx.fillStyle = this._back; //Set color
-      this._ctx.fillRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y); //Draw the background
+    if (this._back) { //Fill a background if the camera has a background color
+      this._ctx.fillStyle = this._back;
+      this._ctx.fillRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y);
     }
 
-    if (this._stroke) { //If we have a stroke color, draw it.
-      this._ctx.strokeStyle = this._stroke; //Set the color
-      this._ctx.lineWidth = this._lineWidth; //Set the width
-      this._ctx.strokeRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y); //Draw the outline
+    if (this._stroke) { //Outline the camera if the camera has an outline color
+      this._ctx.strokeStyle = this._back;
+      this._ctx.lineWidth = this._lineWidth;
+      this._ctx.strokeRect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y);
     }
 
-    if (this._clip) { //If this Camera is set to clip, then clip.
-      this._ctx.rect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y); //Set the rectangle
-      this._ctx.clip(); //Clip the drawing
+    if (this._clip) { //If camera has clip enabled, clip the canvas.
+      this._ctx.rect(this._canvasPos.x, this._canvasPos.y, this._dimensions.x, this._dimensions.y);
+      this._ctx.clip();
     }
 
-    this._ctx.scale(this._scale.x, this._scale.y); //Scale the context
+    this._ctx.scale(this._scale.x, this._scale.y); //Scale the context using this camera's scale value
 
-    this._ctx.strokeStyle = "black"; //Set default stroke value for Props
-    this._ctx.fillStyle = "green"; //Set default fill value for Props
+    this._ctx.strokeStyle = "black"; //Default fill and stroke color for any props drawn
+    this._ctx.fillStyle = "green";
 
-    for (var i in this._stage.props) { //For each Prop
-      let prop = this._stage.props[i]; //Save the prop for readability
-      let rel = new $P.Coord(prop.x - this._stagePos.x, prop.y - this._stagePos.y); //Set rel as the distance the Prop is from the Camera's stagePos
-      rel.x += this._canvasPos.x / this._scale.x; //Add the Camera's position on the Canvas to the rel value and scale the value up/down by the Camera's scale
-      rel.y += this._canvasPos.y / this._scale.y;
-
-      prop.draw(this._ctx, rel); //Tell the Prop to draw itself, and pass the important parameters.
+    for (var i in this._stage.props) {
+      let prop = this._stage.props[i]; //Store the current prop for easy access
+      let rel = $P.Coord.addCoords(prop.pos, $P.Coord.multCoord(this._stagePos, -1)); //Set rel equal to the difference between the camera position and the current prop position
+      rel = $P.Coord.addCoords(rel, $P.Coord.divCoords(this._canvasPos, this._scale)); //Manipulate rel.y to be relative to the canvas
+      
+      prop.draw(this._ctx, rel);
     }
 
     this._ctx.closePath(); //Close the path
