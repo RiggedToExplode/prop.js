@@ -1,8 +1,10 @@
+import $P from 'https://riggedtoexplode.github.io/framework/prop.js';
+
 var mouse = { //Declare the mouse object
     left: false, //State of left mouse button
     middle: false, //State of middle mouse button
     right: false, //State of right mouse button
-    pos: {x: 0, y: 0} //Basic x and y object
+    pos: new $P.Coord(0, 0) //Mouse position Coord
 }
 
 window.addEventListener("mousedown",
