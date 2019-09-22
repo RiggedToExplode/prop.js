@@ -3,13 +3,17 @@ $P.mouse = { //Declare the mouse object
     middle: false, //State of middle mouse button
     right: false, //State of right mouse button
     pos: new $P.Coord(0, 0), //Mouse position Coord
+    get x() {
+        return this.pos.x;
+    },
+    get y() {
+        return this.pos.y;
+    },
     relPos: function(cam) { //Inefficient(?) method to get position of mouse in stage relative to cam (Camera)
         let canvasBounds = cam.canvas.el.getBoundingClientRect();
 
         return new $P.Coord(cam.scale.x * (this.pos.x - canvasBounds.left - cam.canvasPos.x) + cam.stagePos.x, cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y);
     },
-    x: this.pos.x,
-    y: this.pos.y,
     relX: function(cam) {
         let canvasBounds = cam.canvas.el.getBoundingClientRect();
 
@@ -21,6 +25,7 @@ $P.mouse = { //Declare the mouse object
         return cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y;
     }
 }
+$P.mouse.x = $P.mouse.pos.x;
 
 window.addEventListener("mousedown",
     function(e) { //Change values of left, middle, and right when mouse button is pressed
