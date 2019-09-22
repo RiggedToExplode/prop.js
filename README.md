@@ -26,14 +26,17 @@ window.setInterval(function () { //Use setInterval to tell Camera "cam" to draw.
 ## Getting Started
 Prop.js is meant to be used in a browser environment, but should function in any environment that uses the same Canvas API as standard browsers.
 
+### The Wiki
+Prop.js is documented using GitHub's wiki pages. Follow the link at the top of the page to go to the wiki, and you can find a reference page for every class and module listed in the sidebar on the right. Complex examples and a tutorial are coming soon.
+
 ### The Base Framework
-The first step in any propject utilizing Prop.js is to download the base framework from this repository. The release versions of Prop.js are minified and commited to `prop.js` under the root directory. Download and include this file in your project (with the use of [`import`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import)), and you have all you need to get started with the base Prop.js framework!
+The first step in any propject utilizing Prop.js is to download the base framework from this repository. The release versions of Prop.js are minified and commited to `prop.js` under the root directory. Download and include this file in your project (with the use of `<script>` tags, most likely), and you have all you need to get started with the base Prop.js framework!
 
 ### Modules
 Prop.js is at its strongest when enhanced with modules. The base framework is not meant to be updated, and any additional functionality is rather added in the form of modules under the `modules` directory. These modules are meant to extend upon the base framework by extending its classes. Modules are installed in much  the same way as the base framework: download the respective file and include it in your project. Just be sure to import it after the base `prop.js` file, and any other modules that it depends on. Module dependencies can be found on the wiki page for the module in question.
 
 ## Annotated Versions
-Changes are frequently commited to the `annotated` directory, in the form of indented and commented code. When enough progress has been made, any changes are minified and commited to the respective files in the root directory. Reading the annotated code is your best bet at understanding how the framework functions, until the wiki is completed.
+Changes are frequently commited to the `annotated` directory, in the form of indented and commented code. When enough progress has been made, any changes are minified and commited to the respective files in the root directory. Reading the annotated code can assist in understanding how the framework functions.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE.md file for details.
