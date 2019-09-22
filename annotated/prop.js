@@ -150,6 +150,14 @@ $P.Prop = class extends $P.Base {
     }
   }
 
+  remove(quiet = false) {
+    if (this._stage.removeProp) {
+      return this._stage.removeProp(this, quiet);
+    }
+
+    return false;
+  }
+
   beforeUpdate() {
 
   }
