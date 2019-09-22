@@ -7,6 +7,18 @@ $P.mouse = { //Declare the mouse object
         let canvasBounds = cam.canvas.el.getBoundingClientRect();
 
         return new $P.Coord(cam.scale.x * (this.pos.x - canvasBounds.left - cam.canvasPos.x) + cam.stagePos.x, cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y);
+    },
+    x: this.pos.x,
+    y: this.pos.y,
+    relX: function(cam) {
+        let canvasBounds = cam.canvas.el.getBoundingClientRect();
+
+        return cam.scale.x * (this.pos.x - canvasBounds.left - cam.canvasPos.x) + cam.stagePos.x;
+    },
+    relY: function(cam) {
+        let canvasBounds = cam.canvas.el.getBoundingClientRect();
+
+        return cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y;
     }
 }
 
