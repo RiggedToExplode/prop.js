@@ -1,5 +1,5 @@
 $P.Camera = class extends $P.Base {
-  constructor(stage, canvas, stagePos = new $P.Coord(-100, -50), canvasPos = new $P.Coord(0, 0), dimensions = new $P.Coord(200, 100), scale = new $P.Coord(1, 1), clip = true) {
+  constructor(stage, canvas, stagePos = new $P.Coord(0, 0), canvasPos = new $P.Coord(0, 0), dimensions = new $P.Coord(200, 100), scale = new $P.Coord(1, 1), clip = true) {
     super(); //Invoke inheritance constructor
 
     this._canvas = canvas;
