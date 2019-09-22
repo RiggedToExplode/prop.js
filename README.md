@@ -27,7 +27,7 @@ window.setInterval(function () { //Use setInterval to tell Camera "cam" to draw.
 Prop.js is meant to be used in a browser environment, but should function in any environment that uses the same Canvas API as standard browsers.
 
 ### The Wiki
-Prop.js is documented using GitHub's wiki pages. Follow the link at the top of the page to go to the wiki, and you can find a reference page for every class and module listed in the sidebar on the right. Complex examples and a tutorial are coming soon.
+Prop.js is documented using GitHub's wiki pages. [Go there](https://github.com/RiggedToExplode/prop.js/wiki) to find a list of reference pages for every class and module in the framework. Complex examples and a tutorial are coming soon.
 
 ### The Base Framework
 The first step in any propject utilizing Prop.js is to download the base framework from this repository. The release versions of Prop.js are minified and commited to `prop.js` under the root directory. Download and include this file in your project (with the use of `<script>` tags, most likely), and you have all you need to get started with the base Prop.js framework!
