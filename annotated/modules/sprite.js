@@ -6,11 +6,11 @@ $P.Sprite  = class extends $P.Base {
         this._img.src = src;
     }
 
-    apply(prop, center = true) {
+    applyTo(prop, center = true) {
         prop._sprite = this;
         if (center) {
             prop.draw = function(ctx, rel) {
-
+                ctx.save();
                 ctx.translate(rel.x, rel.y);
                 ctx.rotate(this._radians);
 
@@ -26,7 +26,7 @@ $P.Sprite  = class extends $P.Base {
             }
         } else {
             prop.draw = function(ctx, rel) {
-
+                ctx.save();
                 ctx.translate(rel.x, rel.y);
                 ctx.rotate(this._radians);
 
