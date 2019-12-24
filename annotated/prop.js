@@ -23,11 +23,11 @@ $P.Prop = class extends $P.Base {
 
 
   set _x(x) {
-    this._pos.x = x;
+    this._pos._x = x;
   }
 
   set _y(y) {
-    this._pos.y = y;
+    this._pos._y = y;
   }
 
   set pos(pos) {
@@ -63,11 +63,11 @@ $P.Prop = class extends $P.Base {
   }
 
   get _x() {
-    return this._pos.x;
+    return this._pos._x;
   }
 
   get _y() {
-    return this._pos.y;
+    return this._pos._y;
   }
 
   get pos() {
