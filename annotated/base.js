@@ -27,6 +27,10 @@ var $P = {
       return new $P.Coord(coord.x * factor, coord.y * factor);
     }
 
+    static divCoord(coord, factor) { //Static method to divide a coord object by a number
+      return new $P.Coord(coord.x / factor, coord.y / factor);
+    }
+
     static multCoords(coord1, coord2) { //Static method to multiply two coord objects together
       return new $P.Coord(coord1.x * coord2.x, coord1.y * coord2.y);
     }
