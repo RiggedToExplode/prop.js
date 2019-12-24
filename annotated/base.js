@@ -18,6 +18,11 @@ var $P = {
       return new $P.Coord(coord1.x + coord2.x, coord1.y + coord2.y);
     }
 
+    static subCoords(coord1, coord2) { //Static method to subtract two coord objects
+      let temp = $P.Coord.multCoord(coord2, -1); //Reverse the second coord, pos -> neg, neg -> pos
+      return $P.Coord.addCoords(coord1, temp); //Add the two coords, with the second coord being flipped.
+    }
+
     static multCoord(coord, factor) { //Static method to multiply a coord object by a number
       return new $P.Coord(coord.x * factor, coord.y * factor);
     }

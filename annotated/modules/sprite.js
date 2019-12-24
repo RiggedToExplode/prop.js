@@ -43,13 +43,13 @@ $P.Sprite  = class extends $P.Base {
         }
     }
 
-    draw(ctx, pos, center = true) {
+    draw(ctx, rel, center = true) {
         ctx.beginPath();
 
         if (center) {
-            ctx.drawImage(this._img, pos.x - this._img.width/2, pos.y - this._img.height/2);
+            ctx.drawImage(this._img, rel.x - this._img.width/2, rel.y - this._img.height/2);
         } else {
-            ctx.drawImage(this._img, pos.x, pos.y);
+            ctx.drawImage(this._img, rel.x, rel.y);
         }
 
         ctx.closePath();
