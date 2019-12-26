@@ -7,8 +7,28 @@ $P.Sprite  = class extends $P.Base {
         this._scale = scale;
     }
 
+    set _src(src) {
+        this._img.src = src;
+    }
+    
+    set src(src) {
+        this._img.src = src;
+    }
+
     set scale(scale) {
         this._scale = scale;
+    }
+
+    get _src() {
+        return this._img.src;
+    }
+
+    get src() {
+        return this._img.src;
+    }
+
+    get img() {
+        return this._img;
     }
 
     get scale() {
