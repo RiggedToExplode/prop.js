@@ -1,9 +1,18 @@
 $P.Sprite  = class extends $P.Base {
-    constructor(src) {
+    constructor(src, scale = new $P.Coord(1, 1)) {
         super();
 
         this._img = new Image();
         this._img.src = src;
+        this._scale = scale;
+    }
+
+    set scale(scale) {
+        this._scale = scale;
+    }
+
+    get scale() {
+        return this._scale;
     }
 
     applyTo(prop, center = true) {
@@ -43,14 +52,24 @@ $P.Sprite  = class extends $P.Base {
         }
     }
 
+    copy(scale = new $P.Coord(1, 1)) {
+        return new $P.Sprite(this._img.src, scale);
+    }
+
     draw(ctx, rel, center = true) {
         ctx.beginPath();
+
+        ctx.save();
+
+        ctx.scale(this._scale.x, this._scale.y);
 
         if (center) {
             ctx.drawImage(this._img, rel.x - this._img.width/2, rel.y - this._img.height/2);
         } else {
             ctx.drawImage(this._img, rel.x, rel.y);
         }
+
+        ctx.restore();
 
         ctx.closePath();
     }
