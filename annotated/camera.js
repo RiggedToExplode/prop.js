@@ -152,7 +152,7 @@ $P.Camera = class extends $P.Base {
       let rel = $P.Coord.addCoords(prop.pos, $P.Coord.multCoord(this._stagePos, -1)); //Set rel equal to the difference between the camera position and the current prop position
       rel = $P.Coord.addCoords(rel, $P.Coord.divCoords(this._canvasPos, this._scale)); //Manipulate rel.y to be relative to the canvas
       
-      prop.draw(this._ctx, rel);
+      prop.draw(this._ctx, rel, this._scale);
     }
 
     this._ctx.closePath(); //Close the path
