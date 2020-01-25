@@ -122,7 +122,7 @@ $P.Camera = class extends $P.Base {
   }
 
   draw() {
-    this._ctx.save(); //Save the context because we will probably be scaling it.
+    this._ctx.save(); //Save the context because we will possibly be scaling it.
 
     this._ctx.beginPath(); //Begin path for cleanliness
 
@@ -149,8 +149,9 @@ $P.Camera = class extends $P.Base {
       this._ctx.fillStyle = "green";
 
       let prop = this._stage.props[i]; //Store the current prop for easy access
-      let rel = $P.Coord.addCoords(prop.pos, $P.Coord.multCoord(this._stagePos, -1)); //Set rel equal to the difference between the camera position and the current prop position
-      rel = $P.Coord.addCoords(rel, $P.Coord.divCoords(this._canvasPos, this._scale)); //Manipulate rel.y to be relative to the canvas
+      let rel = $P.Coord.subCoords(prop.pos, this._stagePos); //Set rel equal to the difference between the camera position and the current prop position
+      rel = $P.Coord.addCoords(rel, this._canvasPos); //Manipulate rel to be relative to the canvas
+      rel = $P.Coord.divCoords(rel, this._scale); //Divide rel by the camera's scale as to compensate for the Canvas scaling up coordinates.
       
       prop.draw(this._ctx, rel, this._scale);
     }
