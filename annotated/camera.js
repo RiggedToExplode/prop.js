@@ -32,7 +32,7 @@ $P.Camera = class extends $P.Base {
   }
 
   set canvasPos(pos) {
-    this.canvasPos = pos;
+    this._canvasPos = pos;
   }
 
   set width(width) {
