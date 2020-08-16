@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 
 VERSIONS=es2020
 FIRSTVERSION=es2020
