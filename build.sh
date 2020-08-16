@@ -8,7 +8,7 @@ TEST=0
 
 args=$(getopt Ttfv:O: $*)
 
-if [ $? -ne 0 ] || [ "$1" == "" ]; then
+if [ "$?" -ne 0 ] || [ $# -eq 0 ]; then
     echo "Usage: $(basename $0) [-v versions] [-O optimization] [-ftT] file1 [file2 ...]"
     exit 2
 fi
@@ -31,7 +31,7 @@ while :; do
             ;;
         -v) 
             VERSIONS=$(echo "$2" | sed "s/,/ /g")
-            if [ "$2" == "all" ]; then
+            if [ $2 = "all" ]; then
                 VERSIONS="es2020 es6 es2015 es2016 es2017 es2019 esnext"
             fi
             FIRSTVERSION=$(echo $VERSIONS | cut -d " " -f1)
@@ -49,16 +49,16 @@ done
 
 printf "ECMA Targets: $VERSIONS\n"
 printf "Primary Target: $FIRSTVERSION\n"
-if [ "$OPTIMIZATION" -ne "0" ]; then
+if [ $OPTIMIZATION -ne 0 ]; then
     printf "WASM Optimization: O$OPTIMIZATION\n"
 fi
-if [ "$FINAL" -ne "0" ]; then
+if [ $FINAL -ne 0 ]; then
     printf "Set to copy a final 'de-facto' version.\n"
 fi
-if [ "$TEST" == "1" ]; then
+if [ $TEST -eq 1 ]; then
     printf "Set to copy a test version to test directory.\n"
 fi
-if [ "$TEST" == "2" ]; then
+if [ $TEST -eq 2 ]; then
     printf "Set to compile only to test directory.\n"
 fi
 printf \n
@@ -76,14 +76,22 @@ for path in $@; do
     RELATIVEPATH=$(echo $path | sed 's/.*src\///')
     case $(echo $path | awk -F . '{print $NF}') in
         ts) 
-            if [ "$TEST" == "2" ]; then
+            if [ $TEST -eq 2 ]; then
                 printf "\r\033[KCompiling file $RELATIVEPATH ($CURRFILE/$FILESLENGTH) to ECMA version '$version' for test directory..."
                 tsc -t $FIRSTVERSION --outDir test/ $path
+                if [ $? -ne 0 ]; then
+                    printf "\n $(basename $0): Fatal error!\n"
+                    exit $?
+                fi
             else
                 for version in $VERSIONS; do
                     printf "\r\033[KCompiling file $RELATIVEPATH ($CURRFILE/$FILESLENGTH) to ECMA version '$version' ($CURRVERSION/$VERSIONSLENGTH)..."
                     CURRVERSION=$((CURRVERSION + 1))
                     tsc -t $version --outDir versions/$version/ $path
+                    if [ $? -ne 0 ]; then
+                        printf "\n $(basename $0): Fatal error!\n"
+                        exit $?
+                    fi
                 done
                 CURRVERSION=1
             fi
@@ -92,6 +100,10 @@ for path in $@; do
             printf "\r\033[KCompiling file $RELATIVEPATH ($CURRFILE/$FILESLENGTH) to WebAssembly with optimization level O$OPTIMIZATION..."
             mkdir -p $(dirname $RELATIVEPATH)
             emcc -O$OPTIMIZATION --no-entry $path -o $(echo $RELATIVEPATH | sed 's/\..*/\.wasm/')
+            if [ $? -ne 0 ]; then
+                printf "\n $(basename $0): Fatal error!\n"
+                exit $?
+            fi
             ;;
         ?)  
             printf "\r\033[KSkipping unrecognized file $RELATIVEPATH ($CURRFILE/$FILESLENGTH)..."
@@ -101,16 +113,16 @@ for path in $@; do
     CURRFILE=$((CURRFILE + 1))
 done
 
-if [ "$TEST" == "1" ]; then
-    printf "\r\033[KCopying files from versions/$FIRSTVERSION to test directory..."
+if [ $TEST -eq 1 ]; then
+    printf "\nCopying files from versions/$FIRSTVERSION to test directory..."
     cp -rf versions/$FIRSTVERSION/modules test/
     cp -f versions/$FIRSTVERSION/prop.js test/prop.js
     cp -f prop.wasm test/prop.wasm
 fi
 
-if [ "$FINAL" -ne "0" ]; then
-    printf "\r\033[KCopying files from versions/$FIRSTVERSION to root directory for a 'de-facto' version..."
-    cp -rf versions/$FIRSTVERSION/modules modules
+if [ $FINAL -ne 0 ]; then
+    printf "\nCopying files from versions/$FIRSTVERSION to root directory for a 'de-facto' version..."
+    cp -rf versions/$FIRSTVERSION/modules ./
     cp -f versions/$FIRSTVERSION/prop.js prop.js
 fi
 
