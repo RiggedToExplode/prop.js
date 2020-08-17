@@ -1,1 +1,0 @@
-$P.Keys=[],window.addEventListener("keydown",function(e){$P.Keys[e.keyCode]=!0},!1),window.addEventListener("keyup",function(e){$P.Keys[e.keyCode]=!1},!1);
