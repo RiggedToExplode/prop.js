@@ -98,11 +98,20 @@ for path in $@; do
             ;;
         c)  
             printf "\r\033[KCompiling file $RELATIVEPATH ($CURRFILE/$FILESLENGTH) to WebAssembly with optimization level O$OPTIMIZATION..."
-            mkdir -p $(dirname $RELATIVEPATH)
-            emcc -O$OPTIMIZATION --no-entry $path -o $(echo $RELATIVEPATH | sed 's/\..*/\.wasm/')
-            if [ $? -ne 0 ]; then
-                printf "\n $(basename $0): Fatal error!\n"
-                exit $?
+            if [ $TEST -eq 2 ]; then
+                mkdir -p test/$(dirname $RELATIVEPATH)
+                emcc -O$OPTIMIZATION --no-entry $path -o test/$(echo $RELATIVEPATH | sed 's/\..*/\.wasm/')
+                if [ $? -ne 0 ]; then
+                    printf "\n $(basename $0): Fatal error!\n"
+                    exit $?
+                fi
+            else
+                mkdir -p $(dirname $RELATIVEPATH)
+                emcc -O$OPTIMIZATION --no-entry $path -o $(echo $RELATIVEPATH | sed 's/\..*/\.wasm/')
+                if [ $? -ne 0 ]; then
+                    printf "\n $(basename $0): Fatal error!\n"
+                    exit $?
+                fi
             fi
             ;;
         ?)  
