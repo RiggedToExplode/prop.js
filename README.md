@@ -1,6 +1,9 @@
 # prop.js
 Prop.js is a lightweight framework to manage drawing on the canvas via the application of "stage", "prop", and "camera" objects. Further functionality such as basic physics or player management is added through the creation of modules which extend upon the base framework. The goal of Prop.js is to be extendable via direct modification or extension of the base classes. Check the [wiki](https://github.com/RiggedToExplode/prop.js/wiki) or `annotated` directory for documentation and explanations.
 
+# NOTICE
+Prop.js is currently under a *major* overhaul. While the current version on the master branch is functional, I felt it was too slow and began to convert to using WebAssembly and WebGL where it seemed best. I also decided to move to using TypeScript. See the dev-glwasm branch for progress on the new changes, and what to expect once the overhaul is finished. Also keep in mind that much will change once the overhaul is complete, and the framework will function slightly differently than before.
+
 ## Why?
 Prop.js differs from other drawing/creation frameworks in two main ways: the analogy and the modularity. Where other frameworks provide integrated features such as a physics engine or sprite management, Prop.js provides these features as separate modules. The end user can then customize Prop.js to their specific needs, and reduce the overall size of their project. Prop.js is also named and based around the analogy of a stage for a movie or show: the "stage" contains and manages all of the "props"  that are currently in the play, while the "camera" moves separately and records the happenings of the stage. This analogy is evident in the following code:
 ```javascript
