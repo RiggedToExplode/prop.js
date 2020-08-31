@@ -78,7 +78,7 @@ namespace $P {
             coreMemoryManager.write(val, this.yLoc);
         }
 
-        set(x: number | number[], y: number) { //Set both x and y properties with either an Array or seperate values.
+        set(x: number | number[], y: number = undefined) { //Set both x and y properties with either an Array or seperate values.
             if (Array.isArray(x)) {
                 this.x = x[0];
                 this.y = x[1];
@@ -156,7 +156,7 @@ namespace $P {
         }
 
 
-        set(x: number | number[], y: number) { //Set both x and y properties with either an Array or seperate values.
+        set(x: number | number[], y: number = undefined) { //Set both x and y properties with either an Array or seperate values.
             if (Array.isArray(x)) {
                 this.x = x[0];
                 this.y = x[1];
