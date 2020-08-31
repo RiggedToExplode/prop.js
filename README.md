@@ -28,7 +28,7 @@ window.setInterval(function () { //Use setInterval to tell Camera "cam" to draw.
 ```
 
 ## Getting Started
-Prop.js is meant to be used in a browser environment, but should function in any environment that uses the same Canvas API as standard browsers.
+Prop.js is meant to be used in a browser environment, with WebGL2.
 
 ### The Wiki
 Prop.js is documented using GitHub's wiki pages (NOTE: This documentation is for the old version of the framework on the master branch). [Go there](https://github.com/RiggedToExplode/prop.js/wiki) to find a list of reference pages for every class and module in the framework. Complex examples and a tutorial are coming soon.
