@@ -95,7 +95,7 @@ namespace $P {
         }
     }
 
-    class Pair {
+    export class Pair {
         static add(pair1: Pair | number[], pair2: Pair | number[]) { //Add two two Pair together and return the result.
             return new Pair(pair1[0] + pair2[0], pair1[1] + pair2[1]);
         }
