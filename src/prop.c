@@ -1,31 +1,31 @@
 #include <math.h>
 
-void addCoords(float *coord1, float *coord2) {
+void add(float *coord1, float *coord2) {
     coord1[0] += coord2[0];
     coord1[1] += coord2[1];
 }
 
-void subCoords(float *coord1, float *coord2) {
+void subtract(float *coord1, float *coord2) {
     coord1[0] -= coord2[0];
     coord1[1] -= coord2[1];
 }
 
-void multCoords(float *coord1, float *coord2) {
+void multiply(float *coord1, float *coord2) {
     coord1[0] *= coord2[0];
     coord1[1] *= coord2[1];
 }
 
-void multCoord(float *coord, float factor) {
+void factor(float *coord, float factor) {
     coord[0] *= factor;
     coord[1] *= factor;
 }
 
-void divCoords(float *coord1, float *coord2) {
+void divide(float *coord1, float *coord2) {
     coord1[0] /= coord2[0];
     coord1[1] /= coord2[1];
 }
 
-void divCoord(float *coord, float factor) {
+void divisor(float *coord, float divisor) {
     coord[0] /= factor;
     coord[1] /= factor;
 }
