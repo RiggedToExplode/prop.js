@@ -16,33 +16,33 @@ namespace $P {
     }
 
     export class Coord { //Class to store two-dimensional coordinate values and manipulate them with WebAssembly.
-        static addCoords(coord1: Coord, coord2: Coord) { //Add two two Coords together and store the result in the first Coord.
-            coreModule.exports.addCoords(coord1.ptr, coord2.ptr);
+        static add(coord1: Coord, coord2: Coord) { //Add two two Coords together and store the result in the first Coord.
+            coreModule.exports.add(coord1.ptr, coord2.ptr);
             return coord1;
         }
 
-        static subCoords(coord1: Coord, coord2: Coord) { //Subtract second Coord from first Coord and store the result in the first Coord.
-            coreModule.exports.subCoords(coord1.ptr, coord2.ptr);
+        static subtract(coord1: Coord, coord2: Coord) { //Subtract second Coord from first Coord and store the result in the first Coord.
+            coreModule.exports.subtract(coord1.ptr, coord2.ptr);
             return coord1;
         }
 
-        static multCoord(coord: Coord, factor: number) { //Multiply the Coord by factor, storing the result in the Coord.
-            coreModule.exports.multCoord(coord.ptr, factor);
+        static factor(coord: Coord, factor: number) { //Multiply the Coord by factor, storing the result in the Coord.
+            coreModule.exports.factor(coord.ptr, factor);
             return coord;
         }
 
-        static multCoords(coord1: Coord, coord2: Coord) { //Multiply two Coords by each other, storing the result in the first Coord.
-            coreModule.exports.multCoords(coord1.ptr, coord2.ptr);
+        static multiply(coord1: Coord, coord2: Coord) { //Multiply two Coords by each other, storing the result in the first Coord.
+            coreModule.exports.multiply(coord1.ptr, coord2.ptr);
             return coord1;
         }
 
-        static divCoord(coord: Coord, factor: number) { //Divide a Coord by a factor, storing the result in the Coord.
-            coreModule.exports.divCoord(coord.ptr, factor);
+        static divisor(coord: Coord, factor: number) { //Divide a Coord by a factor, storing the result in the Coord.
+            coreModule.exports.divisor(coord.ptr, factor);
             return coord;
         }
         
-        static divCoords(coord1: Coord, coord2: Coord) { //Divide two Coords by each other, storing the result in the first Coord.
-            coreModule.exports.divCoords(coord1.ptr, coord2.ptr);
+        static divide(coord1: Coord, coord2: Coord) { //Divide two Coords by each other, storing the result in the first Coord.
+            coreModule.exports.divide(coord1.ptr, coord2.ptr);
             return coord1;
         }
 
@@ -86,8 +86,76 @@ namespace $P {
             return [this.x, this.y];
         }
 
+        toPair(): Pair { //Turn this Coord into a new Pair and return the Pair
+            return new Pair(this.x, this.y);
+        }
+
         remove() { //Remove this Coord, thus freeing up its memory.
             coreMemoryManager.removeBlock(this.loc);
+        }
+    }
+
+    class Pair {
+        static add(pair1: Pair | number[], pair2: Pair | number[]) { //Add two two Pair together and return the result.
+            return new Pair(pair1[0] + pair2[0], pair1[1] + pair2[1]);
+        }
+
+        static subtract(pair1: Pair | number[], pair2: Pair | number[]) { //Subtract second Pair from first Pair and return the result.
+            return new Pair(pair1[0] - pair2[0], pair1[1] - pair2[1]);
+        }
+
+        static factor(pair: Pair | number[], factor: number) { //Multiply the Pair by a factor and return the result.
+            return new Pair(pair[0] * factor, pair[1] * factor)
+        }
+
+        static multiply(pair1: Pair | number[], pair2: Pair | number[]) { //Multiply two Pairs by each other and return the result.
+            return new Pair(pair1[0] * pair2[0], pair1[1] * pair2[1]);
+        }
+
+        static divisor(pair: Pair | number[], divisor: number) { //Divide a Pair by a factor and return the result.
+            return new Pair(pair[0] / divisor, pair[1] / divisor);
+        }
+        
+        static divide(pair1: Pair | number[], pair2: Pair | number[]) { //Divide two Pairs by each other and return the result.
+            return new Pair(pair1[0] / pair2[0], pair1[1] / pair2[1]);
+        }
+
+        static dist(pair1: Pair | number[], pair2: Pair | number[]) { //Find the distance between two Pairs.
+            return Math.sqrt(Math.pow(pair2[0] - pair1[0], 2) + Math.pow(pair2[1] - pair1[1], 2));
+        }
+
+
+        constructor (public x: number, public y: number) {
+        }
+
+
+        set 0(x: number) {
+            this.x = x;
+        }
+
+        set 1(y: number) {
+            this.y = y;
+        }
+
+        get 0(): number {
+            return this.x;
+        }
+
+        get 1(): number {
+            return this.y
+        }
+
+
+        copy(): Pair {
+            return new Pair(this.x, this.y);
+        }
+
+        toArr(): number[] {
+            return [this.x, this.y];
+        }
+
+        toCoord(): Coord {
+            return new Coord(this.x, this.y);
         }
     }
 }
