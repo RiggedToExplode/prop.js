@@ -14,15 +14,22 @@ namespace $P {
 
         
         public stage: Stage; //Declare the stage property.
+
+        public screenPos: Pair;
         public triangles: Float32Array; //The triangles that make up this Prop's shape.
         public texTriangles: Float32Array; //The triangles that make up this Prop's texture coordinates.
-        public texID: number; //Declare the texture for this Prop.
+        public texture: WebGLTexture;  //Declare the texture for this Prop.
 
 
         constructor(public pos: Coord = new Coord(0, 0), public radians: number = 0, public bounds: Coord[] = [new Coord(-10, -10), new Coord(10, -10), new Coord(10, 10), new Coord(-10, 10)]) {
             super();
 
-            this.texID = 0;
+            this.triangles = new Float32Array([-10, -10,
+                                                10, -10,
+                                                -10, 10
+                                                -10, 10,
+                                                10, -10,
+                                                10, 10]);
         }
         
 
@@ -61,16 +68,17 @@ namespace $P {
 
 
         setPos(x: number, y: number) { //Set position of this prop using separate x and y coordinate arguments.
-            this.pos[0] = x;
-            this.pos[1] = y;
+            this.pos.x = x;
+            this.pos.y = y;
         }
 
         move(vect: Coord): Coord { //Move this prop by coordinates specified in provided Coord.
-            return this.pos = Coord.addCoords(this.pos, vect);
+            return this.pos = Coord.add(this.pos, vect);
         }
 
         moveEx(x: number, y: number): Coord { //Move this prop by coordinates specified by specific x and y coordinate arguments.
-            return this.pos = Coord.addCoords(this.pos, new Coord(x, y));
+            this.setPos(this.x + x, this.y + y);
+            return this.pos;
         }
 
         rotate(radians: number): number { //Rotate this prop by provided radians amount.
@@ -102,8 +110,10 @@ namespace $P {
 
         afterUpdate(dt: number) {} //Empty afterUpdate method to be redefined by derivative objects and classes.
 
-        draw(gl: WebGL2RenderingContext, rel: Coord, scale: Coord) { //Default draw method to be redefined by derivative objects and classes.
+        draw(rel: number[], timer: number) { //Default draw method to be redefined by derivative objects and classes.
+            this.screenPos.set(rel);
 
+            return true; //Return true to tell Camera to draw this prop.
         }
     }
 }
