@@ -78,6 +78,16 @@ namespace $P {
             coreMemoryManager.write(val, this.yLoc);
         }
 
+        set(x: number | number[], y: number) { //Set both x and y properties with either an Array or seperate values.
+            if (Array.isArray(x)) {
+                this.x = x[0];
+                this.y = x[1];
+            } else {
+                this.x = x;
+                this.y = y;
+            }
+        }
+
         copy(): Coord { //Copy this Coord by returning a new Coord with the same values.
             return new Coord(this.x, this.y);
         }
@@ -145,6 +155,16 @@ namespace $P {
             return this.y
         }
 
+
+        set(x: number | number[], y: number) { //Set both x and y properties with either an Array or seperate values.
+            if (Array.isArray(x)) {
+                this.x = x[0];
+                this.y = x[1];
+            } else {
+                this.x = x;
+                this.y = y;
+            }
+        }
 
         copy(): Pair {
             return new Pair(this.x, this.y);
