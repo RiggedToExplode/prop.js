@@ -1,4 +1,4 @@
-/// <reference path="../prop.ts" />
+///<reference path="../declarations/glob.d.ts" />
 
 namespace $P {
     export var keyCodes: boolean[] = []; //Declare and initialize the keyCodes array.

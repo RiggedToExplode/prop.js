@@ -1,11 +1,11 @@
-/// <reference path="../prop.ts" />
+///<reference path="../declarations/glob.d.ts" />
 
 namespace $P {
     export var Mouse = { //Declare the mouse object
         left: false, //State of left mouse button
         middle: false, //State of middle mouse button
         right: false, //State of right mouse button
-        pos: new $P.Coord(0, 0), //Mouse position Coord
+        pos: new Coord(0, 0), //Mouse position Coord
         relPos: function(cam): $P.Coord { //Inefficient(?) method to get position of mouse in stage relative to cam (Camera)
             let canvasBounds = cam.canvas.el.getBoundingClientRect();
             
