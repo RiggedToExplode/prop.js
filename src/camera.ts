@@ -53,21 +53,21 @@ namespace $P {
             return this._el.height;
         }
 
-        createSolidTex(color: number[], level: number = 0, mag: GLint = this.gl.LINEAR, min: GLint = this.gl.NEAREST_MIPMAP_LINEAR, s: GLint = this.gl.REPEAT, t: GLint = this.gl.REPEAT): WebGLTexture {
+        createSolidTex(color: number[], texParam: {mag: GLint, min: GLint, s: GLint, t: GLint} = {mag: undefined, min: undefined, s: undefined, t: undefined}, level: number = 0): WebGLTexture {
             let texture = this.gl.createTexture();
 
             this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
             this.gl.texImage2D(this.gl.TEXTURE_2D, level, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array(color));
 
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, mag);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, min);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, s);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, t);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, texParam.mag ? texParam.mag : this.gl.LINEAR);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, texParam.min ? texParam.min : this.gl.NEAREST_MIPMAP_LINEAR);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, texParam.s ? texParam.s : this.gl.REPEAT);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, texParam.t ? texParam.t : this.gl.REPEAT);
 
             return texture;
         }
 
-        loadImageTex(src: string, texParam: {mag: GLint, min: GLint, s: GLint, t: GLint} = {mag: this.gl.LINEAR, min: this.gl.NEAREST_MIPMAP_LINEAR, s: this.gl.REPEAT, t: this.gl.REPEAT}, level: number = 0, internalFormat: number = this.gl.RGBA, srcFormat: number = this.gl.RGBA, srcType: number = this.gl.UNSIGNED_BYTE): WebGLTexture {
+        loadImageTex(src: string, texParam: {mag: GLint, min: GLint, s: GLint, t: GLint} = {mag: undefined, min: undefined, s: undefined, t: undefined}, level: number = 0, internalFormat: number = this.gl.RGBA, srcFormat: number = this.gl.RGBA, srcType: number = this.gl.UNSIGNED_BYTE): WebGLTexture {
             let texture = this.gl.createTexture();
             let image = new Image();
             let gl = this.gl;
@@ -75,10 +75,10 @@ namespace $P {
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texImage2D(gl.TEXTURE_2D, level, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([128, 0, 128, 255]));
 
-            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, texParam.min);
-            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, texParam.mag);
-            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, texParam.s);
-            gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, texParam.t);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texParam.mag ? texParam.mag : gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texParam.min ? texParam.min : gl.NEAREST_MIPMAP_LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParam.s ? texParam.s : gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texParam.t ? texParam.t : gl.REPEAT);
 
             image.onload = function() {
                gl.bindTexture(gl.TEXTURE_2D, texture);
