@@ -100,6 +100,7 @@ namespace $P {
 
                 uniform vec2 u_resolution; //Take the current Canvas width and height as a uniform.
                 uniform vec2 u_rotation;
+                uniform vec2 u_scale;
                 uniform vec2 u_offset; //Take the offset from the top-left of the Canvas that the current Prop is being drawn at.
 
                 out vec2 v_texCoord; //Pass texture coordinates to fragment shader.
@@ -109,7 +110,11 @@ namespace $P {
                         a_position.x * u_rotation.y + a_position.y * u_rotation.x,
                         a_position.y * u_rotation.y - a_position.x * u_rotation.x
                     );
-                    vec2 relToZero = rotated + u_offset; //Get the position of the current vertex relative to the top left of the canvas.
+                    vec2 scaled = vec2(
+                        rotated.x * u_scale.x,
+                        rotated.y * u_scale.y
+                    );
+                    vec2 relToZero = scaled + u_offset; //Get the position of the current vertex relative to the top left of the canvas.
                     vec2 zeroToOne = relToZero / u_resolution; //Get a 0 to 1 clipspace position from the gamespace position.
                     vec2 zeroToTwo = zeroToOne * 2.0; //Convert 0 to 1 to 0 to 2
                     vec2 clipSpace = zeroToTwo - 1.0; //Convert 0 to 2 to -1 to 1 clip space coordinates.
@@ -170,7 +175,7 @@ namespace $P {
         private program: WebGLProgram;
 
         private attribLocation: {position: GLint, texCoord: GLint} = {position: undefined, texCoord: undefined};
-        private uniformLocation: {resolution: WebGLUniformLocation, offset: WebGLUniformLocation, rotation: WebGLUniformLocation, texture: WebGLUniformLocation} = {resolution: undefined, offset: undefined, rotation: undefined, texture: undefined};
+        private uniformLocation: {resolution: WebGLUniformLocation, offset: WebGLUniformLocation, scale: WebGLUniformLocation, rotation: WebGLUniformLocation, texture: WebGLUniformLocation} = {resolution: undefined, offset: undefined, scale: undefined, rotation: undefined, texture: undefined};
 
         private buffers: {position: WebGLBuffer, texCoord: WebGLBuffer} = {position: undefined, texCoord: undefined};
 
@@ -192,6 +197,7 @@ namespace $P {
 
             this.uniformLocation.resolution = this.gl.getUniformLocation(this.program, "u_resolution"); //Get location of resolution uniform.
             this.uniformLocation.offset = this.gl.getUniformLocation(this.program, "u_offset"); //Get location of offset uniform.
+            this.uniformLocation.scale = this.gl.getUniformLocation(this.program, "u_scale");
             this.uniformLocation.rotation = this.gl.getUniformLocation(this.program, "u_rotation");
             this.uniformLocation.texture = this.gl.getUniformLocation(this.program, "u_texture"); //Get location of texture uniform.
 
@@ -249,11 +255,9 @@ namespace $P {
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
             this.stage.props.forEach(prop => {
-                let rel = Coord.divide( //Find the prop's position relative to the top left of the canvas.
-                              Coord.add(
-                                  Coord.subtract(prop.pos.copy(), this.stagePos),
-                              this.canvasPos),
-                          this.scale);
+                let rel = Coord.add( //Find the prop's position relative to the top left of the canvas.
+                            Coord.subtract(prop.pos.copy(), this.stagePos),
+                          this.canvasPos);
                 
                 if (prop.draw(rel)) {
                     this.gl.bindVertexArray(this.vertexArrayObject);
@@ -285,6 +289,7 @@ namespace $P {
 
                     this.gl.uniform1i(this.uniformLocation.texture, 0);
                     this.gl.uniform2f(this.uniformLocation.offset, prop.view.screenPos.x, prop.view.screenPos.y);
+                    this.gl.uniform2f(this.uniformLocation.scale, this.scale.x, this.scale.y);
                     this.gl.uniform2fv(this.uniformLocation.rotation, prop.view.rotation);
                     this.gl.uniform2f(this.uniformLocation.resolution, this.canvas.width, this.canvas.height);
 
