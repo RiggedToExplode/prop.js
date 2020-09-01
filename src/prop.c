@@ -26,8 +26,8 @@ void divide(float *coord1, float *coord2) {
 }
 
 void divisor(float *coord, float divisor) {
-    coord[0] /= factor;
-    coord[1] /= factor;
+    coord[0] /= divisor;
+    coord[1] /= divisor;
 }
 
 float dist(float *coord1, float *coord2) {
