@@ -7,10 +7,13 @@ declare namespace $P {
         static toRadians(degrees: number): number;
         static perSecond(val: number): number;
         stage: Stage;
-        screenPos: Pair;
-        triangles: Float32Array;
-        texTriangles: Float32Array;
-        texture: WebGLTexture;
+        view: {
+            screenPos: Pair;
+            rotation: number[];
+            triangles: Float32Array;
+            texTriangles: Float32Array;
+            texture: WebGLTexture;
+        };
         constructor(pos?: Coord, radians?: number, bounds?: Coord[]);
         set x(x: number);
         set y(y: number);
@@ -29,6 +32,6 @@ declare namespace $P {
         beforeUpdate(dt: number): void;
         update(dt: number): void;
         afterUpdate(dt: number): void;
-        draw(rel: Coord, timer: number): boolean;
+        draw(rel: Coord): boolean;
     }
 }
