@@ -175,9 +175,11 @@ if [ $DECLARATION -eq 1 ]; then
 fi
 
 
-for version in $VERSIONS; do
-    mkdir -p versions/$version/modules
-done
+if [ $TEST -ne 2 ]; then
+    for version in $VERSIONS; do
+        mkdir -p versions/$version/modules
+    done
+fi
 
 
 currFile=1
@@ -267,11 +269,17 @@ for path in $@; do
     currFile=$((currFile + 1))
 done
 
-if [ $TEST -eq 1 ]; then
-    newline "Copying files from versions/$FIRSTVERSION to test directory..."
-    cp -rf versions/$FIRSTVERSION/modules test/
-    cp -f versions/$FIRSTVERSION/prop.js test/prop.js
-    cp -f prop.wasm test/prop.wasm
+if [ $TEST -ne 0 ]; then
+    newline "Attempting to compile test/main.ts..."
+
+    tsc -t $FIRSTVERSION --outFile test/main.js test/main.ts
+
+    if [ $TEST -eq 1 ]; then
+        newline "Copying files from versions/$FIRSTVERSION to test directory..."
+        cp -rf versions/$FIRSTVERSION/modules test/
+        cp -f versions/$FIRSTVERSION/prop.js test/prop.js
+        cp -f prop.wasm test/prop.wasm
+    fi
 fi
 
 if [ $FINAL -ne 0 ]; then
