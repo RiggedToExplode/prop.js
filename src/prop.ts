@@ -15,18 +15,15 @@ namespace $P {
         
         public stage: Stage; //Declare the stage property.
 
-        public screenPos: Pair;
-        public triangles: Float32Array; //The triangles that make up this Prop's shape.
-        public texTriangles: Float32Array; //The triangles that make up this Prop's texture coordinates.
-        public texture: WebGLTexture;  //Declare the texture for this Prop.
+        public view: { screenPos: Pair, rotation: number[], triangles: Float32Array, texTriangles: Float32Array, texture: WebGLTexture } = {screenPos: undefined, rotation: undefined, triangles: undefined, texTriangles: undefined, texture: undefined};
 
 
         constructor(public pos: Coord = new Coord(0, 0), public radians: number = 0, public bounds: Coord[] = [new Coord(-10, -10), new Coord(10, -10), new Coord(10, 10), new Coord(-10, 10)]) {
             super();
 
-            this.screenPos = new Pair(0, 0);
+            this.view.screenPos = new Pair(0, 0);
 
-            this.triangles = new Float32Array([-10, -10,
+            this.view.triangles = new Float32Array([-10, -10,
                                                 10, -10,
                                                 -10, 10
                                                 -10, 10,
@@ -112,8 +109,9 @@ namespace $P {
 
         afterUpdate(dt: number) {} //Empty afterUpdate method to be redefined by derivative objects and classes.
 
-        draw(rel: Coord, timer: number) { //Default draw method to be redefined by derivative objects and classes.
-            this.screenPos.set(rel.x, rel.y);
+        draw(rel: Coord) { //Default draw method to be redefined by derivative objects and classes.
+            this.view.screenPos.set(rel.x, rel.y);
+            this.view.rotation = [Math.sin(this.radians), Math.cos(this.radians)];
 
             return true; //Return true to tell Camera to draw this prop.
         }
