@@ -13,8 +13,18 @@ declare namespace $P {
         get id(): string;
         get width(): number;
         get height(): number;
-        createSolidTex(color: number[], level?: number): WebGLTexture;
-        loadImageTex(src: string, level?: number, internalFormat?: number, srcFormat?: number, srcType?: number): WebGLTexture;
+        createSolidTex(color: number[], texParam?: {
+            mag?: GLint;
+            min?: GLint;
+            s?: GLint;
+            t?: GLint;
+        }, level?: number): WebGLTexture;
+        loadImageTex(src: string, texParam?: {
+            mag?: GLint;
+            min?: GLint;
+            s?: GLint;
+            t?: GLint;
+        }, level?: number, internalFormat?: number, srcFormat?: number, srcType?: number): WebGLTexture;
     }
     class Camera extends Base {
         stage: Stage;
