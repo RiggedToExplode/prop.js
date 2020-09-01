@@ -24,6 +24,8 @@ namespace $P {
         constructor(public pos: Coord = new Coord(0, 0), public radians: number = 0, public bounds: Coord[] = [new Coord(-10, -10), new Coord(10, -10), new Coord(10, 10), new Coord(-10, 10)]) {
             super();
 
+            this.screenPos = new Pair(0, 0);
+
             this.triangles = new Float32Array([-10, -10,
                                                 10, -10,
                                                 -10, 10
@@ -110,8 +112,8 @@ namespace $P {
 
         afterUpdate(dt: number) {} //Empty afterUpdate method to be redefined by derivative objects and classes.
 
-        draw(rel: number[], timer: number) { //Default draw method to be redefined by derivative objects and classes.
-            this.screenPos.set(rel);
+        draw(rel: Coord, timer: number) { //Default draw method to be redefined by derivative objects and classes.
+            this.screenPos.set(rel.x, rel.y);
 
             return true; //Return true to tell Camera to draw this prop.
         }
