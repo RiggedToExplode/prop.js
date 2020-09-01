@@ -2,15 +2,14 @@ namespace $P {
     export class Canvas { //Canvas class to provide an integrated interface for <canvas> elements. 
         private _el: HTMLCanvasElement; //Initialize private property to store the DOM canvas element.
         private _gl: WebGL2RenderingContext; //The WebGL2 rendering context of this Canvas object's <canvas> element.
-        public texIndex: WebGLTexture[];
+        public defaultTexture: WebGLTexture;
         
 
         constructor (private _id: string, width: number = 200, height: number = 100) {
             this._el = document.getElementById(_id) as HTMLCanvasElement; //Store the DOM-represented <canvas> element based on the _id parameter.
             this._gl = this._el.getContext("webgl2"); //Get the rendering context based on the _contextType parameter.
 
-            this.texIndex = [];
-            this.createSolidTex([0, 255, 0, 255]);
+            this.defaultTexture = this.createSolidTex([0, 255, 0, 255]);
 
             this.width = width; //Set width and height based on parameters.
             this.height = height;
@@ -54,16 +53,16 @@ namespace $P {
             return this._el.height;
         }
 
-        createSolidTex(color: number[], level: number = 0): number {
+        createSolidTex(color: number[], level: number = 0): WebGLTexture {
             let texture = this.gl.createTexture();
 
             this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
             this.gl.texImage2D(this.gl.TEXTURE_2D, level, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array(color));
 
-            return this.texIndex.push(texture);
+            return texture;
         }
 
-        loadImageTex(src: string, level: number = 0, internalFormat: number = this.gl.RGBA, srcFormat: number = this.gl.RGBA, srcType: number = this.gl.UNSIGNED_BYTE): number {
+        loadImageTex(src: string, level: number = 0, internalFormat: number = this.gl.RGBA, srcFormat: number = this.gl.RGBA, srcType: number = this.gl.UNSIGNED_BYTE): WebGLTexture {
             let texture = this.gl.createTexture();
             let image = new Image();
             let gl = this.gl;
@@ -79,7 +78,7 @@ namespace $P {
 
             image.src = src;
 
-            return this.texIndex.push(texture);
+            return texture;
         }
     }    
 
@@ -117,7 +116,7 @@ namespace $P {
                 }`
         }
 
-        static createShader: Function = function (gl, type, source) { //WebGL2 shader creation method
+        static createShader(gl: WebGL2RenderingContext, type: number, source: string) { //WebGL2 shader creation method
             let shader = gl.createShader(type); //Create a WebGL2 shader
             gl.shaderSource(shader, source); //Set the source code of the shader
             gl.compileShader(shader); //Attempt to compile the shader
@@ -132,7 +131,7 @@ namespace $P {
             throw new Error("WebGL shader compile error!"); //And exit with an error.
         }
 
-        static createProgram: Function = function(gl, vertexShader, fragmentShader) { //WebGL2 program creation method
+        static createProgram(gl: WebGL2RenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader) { //WebGL2 program creation method
             var program = gl.createProgram(); //Create a WebGL2 program
             gl.attachShader(program, vertexShader); //Attach the provided vertex shader to the program
             gl.attachShader(program, fragmentShader); //Attach the provided fragment shader to the program
@@ -147,6 +146,11 @@ namespace $P {
             throw new Error("WebGL program attach error!"); //And exit with an error.
         }
 
+        static bufferWrite(gl: WebGL2RenderingContext, buffer: WebGLBuffer, data: Float32Array, mode: number) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, data, mode);
+        }
+
         private shaders: {vertex: WebGLShader, fragment: WebGLShader} = {vertex: undefined, fragment: undefined};
         private program: WebGLProgram;
 
@@ -155,7 +159,7 @@ namespace $P {
 
         private buffers: {position: WebGLBuffer, texCoord: WebGLBuffer} = {position: undefined, texCoord: undefined};
 
-        private vertexArrayObjects: {position: WebGLVertexArrayObject, texCoord: WebGLVertexArrayObject} = {position: undefined, texCoord: undefined};
+        private vertexArrayObject: WebGLVertexArrayObject;
 
         public back: string = "black"; //Declare and initialize background color property
 
@@ -178,8 +182,7 @@ namespace $P {
             this.buffers.position = this.gl.createBuffer(); //Create position buffer.
             this.buffers.texCoord = this.gl.createBuffer(); //Create texture buffer.
             
-            this.vertexArrayObjects.position = this.gl.createVertexArray(); //Create the vertex array.
-            this.vertexArrayObjects.texCoord = this.gl.createVertexArray();
+            this.vertexArrayObject = this.gl.createVertexArray(); //Create the vertex array.
 
             this.gl.clearColor(0, 0, 0, 0);
         }
@@ -230,52 +233,49 @@ namespace $P {
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
             this.stage.props.forEach(prop => {
-                let rel = Coord.divCoords( //Find the prop's position relative to the top left of the canvas.
-                              Coord.addCoords(
-                                  Coord.subCoords(prop.pos.copy(), this.stagePos),
+                let rel = Coord.divide( //Find the prop's position relative to the top left of the canvas.
+                              Coord.add(
+                                  Coord.subtract(prop.pos.copy(), this.stagePos),
                               this.canvasPos),
                           this.scale);
                 
-                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
-                this.gl.bufferData(this.gl.ARRAY_BUFFER, prop.triangles, this.gl.DYNAMIC_DRAW);
-                
-                this.gl.bindVertexArray(this.vertexArrayObjects.position);
-                this.gl.enableVertexAttribArray(this.attribLocation.position);
+                if (prop.draw(rel, 0 /*STANDIN FOR GLOBAL ANIMATION TIMER*/)) {
+                    let screenPos = prop.screenPos;
 
-                this.gl.vertexAttribPointer(
-                    this.attribLocation.position,
-                    2, //Size
-                    this.gl.FLOAT, //Type
-                    false, //Normalize
-                    0, //Stride
-                    0 //Offset
-                );
+                    this.gl.bindVertexArray(this.vertexArrayObject);
 
-                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.texCoord);
-                this.gl.bufferData(this.gl.ARRAY_BUFFER, prop.texTriangles, this.gl.DYNAMIC_DRAW);
+                    this.gl.enableVertexAttribArray(this.attribLocation.position);
+                    Camera.bufferWrite(this.gl, this.buffers.position, prop.triangles, this.gl.DYNAMIC_DRAW);
+                    this.gl.vertexAttribPointer(
+                        this.attribLocation.position,
+                        2, //Size
+                        this.gl.FLOAT, //Type
+                        false, //Normalize
+                        0, //Stride
+                        0 //Offset
+                    );
 
-                this.gl.bindVertexArray(this.vertexArrayObjects.texCoord);
-                this.gl.enableVertexAttribArray(this.attribLocation.texCoord);
+                    this.gl.enableVertexAttribArray(this.attribLocation.texCoord);
+                    Camera.bufferWrite(this.gl, this.buffers.texCoord, prop.texTriangles, this.gl.DYNAMIC_DRAW);
+                    this.gl.vertexAttribPointer(
+                        this.attribLocation.texCoord,
+                        2, //Size
+                        this.gl.FLOAT, //Type
+                        false, //Normalize
+                        0, //Stride
+                        0 //Offset
+                    );
 
-                this.gl.vertexAttribPointer(
-                    this.attribLocation.texCoord,
-                    2, //Size
-                    this.gl.FLOAT, //Type
-                    false, //Normalize
-                    0, //Stride
-                    0 //Offset
-                );
+                    this.gl.activeTexture(this.gl.TEXTURE0);
+                    this.gl.bindTexture(this.gl.TEXTURE_2D, ( prop.texture ? prop.texture : this.canvas.defaultTexture ));
 
-                this.gl.activeTexture(this.gl.TEXTURE0);
-                this.gl.bindTexture(this.gl.TEXTURE_2D, this.canvas.texIndex[prop.texID]);
+                    this.gl.uniform1i(this.uniformLocation.texture, 0);
+                    this.gl.uniform2f(this.uniformLocation.offset, screenPos.x, screenPos.y);
+                    this.gl.uniform2f(this.uniformLocation.resolution, this.canvas.width, this.canvas.height);
 
-                this.gl.uniform1i(this.uniformLocation.texture, 0);
-                this.gl.uniform2f(this.uniformLocation.offset, rel.x, rel.y);
-                this.gl.uniform2f(this.uniformLocation.resolution, this.canvas.width, this.canvas.height);
-
-                rel.remove();
-
-                this.gl.drawArrays(this.gl.TRIANGLES, 0, prop.triangles.length / 2);
+                    this.gl.drawArrays(this.gl.TRIANGLES, 0, prop.triangles.length / 2);
+                }
+                rel.remove();    
             });
         }
     }
