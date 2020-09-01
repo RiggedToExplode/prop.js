@@ -53,7 +53,7 @@ namespace $P {
             return this._el.height;
         }
 
-        createSolidTex(color: number[], texParam: {mag: GLint, min: GLint, s: GLint, t: GLint} = {mag: undefined, min: undefined, s: undefined, t: undefined}, level: number = 0): WebGLTexture {
+        createSolidTex(color: number[], texParam: {mag?: GLint, min?: GLint, s?: GLint, t?: GLint} = {mag: undefined, min: undefined, s: undefined, t: undefined}, level: number = 0): WebGLTexture {
             let texture = this.gl.createTexture();
 
             this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
@@ -67,7 +67,7 @@ namespace $P {
             return texture;
         }
 
-        loadImageTex(src: string, texParam: {mag: GLint, min: GLint, s: GLint, t: GLint} = {mag: undefined, min: undefined, s: undefined, t: undefined}, level: number = 0, internalFormat: number = this.gl.RGBA, srcFormat: number = this.gl.RGBA, srcType: number = this.gl.UNSIGNED_BYTE): WebGLTexture {
+        loadImageTex(src: string, texParam: {mag?: GLint, min?: GLint, s?: GLint, t?: GLint} = {mag: undefined, min: undefined, s: undefined, t: undefined}, level: number = 0, internalFormat: number = this.gl.RGBA, srcFormat: number = this.gl.RGBA, srcType: number = this.gl.UNSIGNED_BYTE): WebGLTexture {
             let texture = this.gl.createTexture();
             let image = new Image();
             let gl = this.gl;
