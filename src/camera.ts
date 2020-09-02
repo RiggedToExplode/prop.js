@@ -363,9 +363,6 @@ namespace $P {
         draw() {
             this.gl.viewport(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y);
 
-            this.gl.enable(this.gl.SCISSOR_TEST);
-            this.gl.scissor(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y);
-
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
             this.stage.props.forEach(prop => {
