@@ -349,7 +349,7 @@ namespace $P {
         }
 
 
-        center(pos: number[]) { //Center this camera on a given position in the stage.
+        center(pos: Pair | number[]) { //Center this camera on a given position in the stage.
             this.stagePos.x = pos[0] - this.dimensions.x / 2;
             this.stagePos.y = pos[1] - this.dimensions.y / 2;
         }
