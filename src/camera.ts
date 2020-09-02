@@ -41,6 +41,12 @@ interface Buffers {
     texCoord: WebGLBuffer
 }
 
+interface MeshInfo {
+    name: string,
+    triangles: Float32Array,
+    texTriangles: Float32Array
+}
+
 namespace $P {
     export class Canvas { //Canvas class to provide an integrated interface for <canvas> elements. 
         static defaultShaderSource: {vertex: string, fragment: string} = {
@@ -96,7 +102,7 @@ namespace $P {
         private _defaultUniformLocation: UniformLocations = {resolution: undefined, offset: undefined, scale: undefined, rotation: undefined, texture: undefined};
         private _defaultBuffer: Buffers = {position: undefined, texCoord: undefined};
 
-        public vertexArrayObjects: Map<string, WebGLVertexArrayObject>;
+        public vertexArrays: Map<string, WebGLVertexArrayObject>;
         public customPrograms: WebGLProgram[];
 
 
@@ -121,7 +127,7 @@ namespace $P {
             this._defaultUniformLocation.rotation = this._gl.getUniformLocation(this._defaultProgram, "u_rotation");
             this._defaultUniformLocation.texture = this._gl.getUniformLocation(this._defaultProgram, "u_texture"); //Get location of texture uniform.
             
-            this.vertexArrayObjects = new Map();
+            this.vertexArrays = new Map();
             this.customPrograms = [];
 
             this.width = width; //Set width and height based on parameters.
@@ -234,22 +240,47 @@ namespace $P {
             return program;
         }
 
-        createVertexArray(key: string) {
-            let vao = this._gl.createVertexArray();
-            this.vertexArrayObjects.set(key, vao);
-            return vao;
+        assignVertexArray(str: string) {
+            this.vertexArrays.set(str, this._gl.createVertexArray());
         }
 
-        assignVAO(str: string) {
-            this.vertexArrayObjects.set(str, this._gl.createVertexArray());
-        }
-
-        assignVAOs(arr: string[]) {
+        assignVertexArrays(arr: string[]) {
             arr.forEach(element => {
-                this.assignVAO(element);
+                this.assignVertexArray(element);
             });
         }
 
+        getVertexArray(name: string) {
+            return this.vertexArrays[name];
+        }
+
+        preloadDefaults(input: MeshInfo | MeshInfo[]) {
+            if (Array.isArray(input)) {
+                input.forEach(meshes => {
+                    this.assignVertexArray(meshes.name);
+
+                    this.vertexArrayWrite(this.getVertexArray(meshes.name),
+                            this.defaultBuffer.position,
+                            this.defaultAttribLocation.position, 
+                            meshes.triangles);
+                    this.vertexArrayWrite(this.getVertexArray(meshes.name),
+                            this.defaultBuffer.texCoord,
+                            this.defaultAttribLocation.texCoord,
+                            meshes.texTriangles);
+                });
+            } else {
+                this.assignVertexArray(input.name);
+
+                this.vertexArrayWrite(this.getVertexArray(input.name),
+                        this.defaultBuffer.position,
+                        this.defaultAttribLocation.position, 
+                        input.triangles);
+                this.vertexArrayWrite(this.getVertexArray(input.name),
+                        this.defaultBuffer.texCoord,
+                        this.defaultAttribLocation.texCoord,
+                        input.texTriangles);
+            }
+        }
 
         vertexArrayWrite(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, data: Float32Array, mode: GLint = this._gl.DYNAMIC_DRAW, ptr: VertexPointer = { size: 2, type: this._gl.FLOAT, normalize: false, stride: 0, offset: 0 }) {
             this._gl.bindVertexArray(vao);
@@ -362,6 +393,9 @@ namespace $P {
 
         draw() {
             this.gl.viewport(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y);
+
+            this.gl.enable(this.gl.SCISSOR_TEST);
+            this.gl.scissor(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y);
 
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
