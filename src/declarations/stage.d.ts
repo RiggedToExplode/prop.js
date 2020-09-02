@@ -1,6 +1,7 @@
 declare namespace $P {
     class Stage extends Base {
         private _props;
+        protected _type: string;
         constructor(_props?: Prop[]);
         get props(): Prop[];
         getIndex(prop: Prop): number;

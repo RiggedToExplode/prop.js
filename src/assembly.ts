@@ -1,5 +1,6 @@
 namespace $P {
     export class MemoryManager { //Wrapper class for WebAssembly.Memory object, provides a TypedArray interface with "memory management".
+        protected _type = "memorymanager";
         public arr: Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array; //Declare TypedArray interface
         protected target: number = 0; //Declare location pointer for any new written values.
         protected free: number[] = []; //Array of free memory locations to write to.
@@ -37,6 +38,10 @@ namespace $P {
                     console.error("TypedArray type '" + arrayType + "' not recognized while constructing AssemblyMemory buffer!");
                 break;
             }
+        }
+
+        get type(): string {
+            return this._type;
         }
 
         write(val: number, loc: number = undefined) { //Write a value to the buffer via this.arr TypedArray
@@ -78,6 +83,8 @@ namespace $P {
     }
 
     export class BlockMemoryManager extends MemoryManager{ //AssemblyMemory, but meant to manage "blocks" (or arrays) of specified blockSize (length) at a time.
+        protected _type = "blockmemorymanager";
+
         constructor(memory: WebAssembly.Memory, arrayType: string = "Float32Array", private blockSize: number = 2 /* length pf each block */) {
             super(memory, arrayType);
         }
@@ -133,6 +140,7 @@ namespace $P {
     }
 
     export class AssemblyModule { //Wrapper class for WebAssembly modules, handles loading via init() method.
+        private _type: string = "assemblymodule";
         private _exports: any; //Declare exports array of exposed functions from WebAssembly
         private _module: any; //Declare WebAssembly module property.
 
@@ -151,6 +159,10 @@ namespace $P {
                 
             this._module = obj.module; //Set the module property.
             this._exports = obj.instance.exports; //Set the array of exported functions! We get to use these! :)
+        }
+
+        get type(): string {
+            return this._type;
         }
 
         get exports(): any { //Get exported functions publicly, as to keep from editing or overwriting them.

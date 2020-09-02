@@ -7,11 +7,18 @@ namespace $P {
 
         private _uid: string; //Initialize private _uid string.
 
+        protected _type: string = "base";
+
+
         constructor() { this._uid = Base.genUID(); } //Set _uid string to unique id.
 
 
         get uid(): string { //Get _uid as public string.
             return this._uid;
+        }
+
+        get type(): string {
+            return this._type;
         }
     }
 
@@ -50,32 +57,41 @@ namespace $P {
             return coreModule.exports.dist(coord1.ptr, coord2.ptr);
         }
 
-        private ptr: number; //Declare address of the x (first) value of this Coord in memory.
-        private loc: number; //Declare index of the x (first) value of this Coord in memory/TypedArray.
-        private yLoc: number; //Declare index of the y (second) value of this Coord in memory/TypedArray.
+        private _ptr: number; //Declare address of the x (first) value of this Coord in memory.
+        private _loc: number; //Declare index of the x (first) value of this Coord in memory/TypedArray.
+        private _yLoc: number; //Declare index of the y (second) value of this Coord in memory/TypedArray.
+        private _type: string = "coord";
 
         constructor (x: number, y: number) { //Take x and y values for this Coord.
-            this.loc = coreMemoryManager.writeBlock([x, y]); //Write them to block memory and store the index.
+            this._loc = coreMemoryManager.writeBlock([x, y]); //Write them to block memory and store the index.
 
-            this.yLoc = this.loc + 1; //Find the index of the y value simply by adding 1.
+            this._yLoc = this._loc + 1; //Find the index of the y value simply by adding 1.
 
-            this.ptr = this.loc * coreMemoryManager.arr.BYTES_PER_ELEMENT; //Find and store the address of this Coord (by first value) in memory.
+            this._ptr = this._loc * coreMemoryManager.arr.BYTES_PER_ELEMENT; //Find and store the address of this Coord (by first value) in memory.
         }
 
         get x(): number { //Get the x value of this Coord by querying memory.
-            return coreMemoryManager.query(this.loc);
+            return coreMemoryManager.query(this._loc);
         }
 
         get y(): number { //Get the y value of this Coord by querying memory.
-            return coreMemoryManager.query(this.yLoc);
+            return coreMemoryManager.query(this._yLoc);
+        }
+
+        get ptr(): number {
+            return this._ptr;
+        }
+
+        get type(): string {
+            return this._type;
         }
 
         set x(val: number) { //Set the x value of this Coord by writing to its location in memory.
-            coreMemoryManager.write(val, this.loc);
+            coreMemoryManager.write(val, this._loc);
         }
 
         set y(val: number) { //Set the y value of this Coord by writing to its location in memory.
-            coreMemoryManager.write(val, this.yLoc);
+            coreMemoryManager.write(val, this._yLoc);
         }
 
         set(x: number | number[], y: number = undefined) { //Set both x and y properties with either an Array or seperate values.
@@ -101,7 +117,7 @@ namespace $P {
         }
 
         remove() { //Remove this Coord, thus freeing up its memory.
-            coreMemoryManager.removeBlock(this.loc);
+            coreMemoryManager.removeBlock(this._loc);
         }
     }
 
@@ -135,6 +151,9 @@ namespace $P {
         }
 
 
+        private _type: string = "pair";
+
+
         constructor (public x: number, public y: number) {
         }
 
@@ -153,6 +172,10 @@ namespace $P {
 
         get 1(): number {
             return this.y
+        }
+
+        get type(): string {
+            return this._type;
         }
 
 

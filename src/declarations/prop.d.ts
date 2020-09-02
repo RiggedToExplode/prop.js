@@ -1,3 +1,15 @@
+interface View {
+    screenPos?: $P.Pair;
+    rotation?: number[];
+    vao?: string;
+    meshLength?: number;
+    program?: WebGLProgram;
+    texture?: WebGLTexture;
+}
+interface Meshes {
+    triangles: Float32Array;
+    texTriangles: Float32Array;
+}
 declare namespace $P {
     class Prop extends Base {
         pos: Coord;
@@ -6,14 +18,10 @@ declare namespace $P {
         static toDegrees(radians: number): number;
         static toRadians(degrees: number): number;
         static perSecond(val: number): number;
+        static defaultMeshes: Meshes;
+        private _view;
+        protected _type: string;
         stage: Stage;
-        view: {
-            screenPos: Pair;
-            rotation: number[];
-            triangles: Float32Array;
-            texTriangles: Float32Array;
-            texture: WebGLTexture;
-        };
         constructor(pos?: Coord, radians?: number, bounds?: Coord[]);
         set x(x: number);
         set y(y: number);
@@ -21,6 +29,7 @@ declare namespace $P {
         get x(): number;
         get y(): number;
         get degrees(): number;
+        get view(): View;
         get index(): number;
         setPos(x: number, y: number): void;
         move(vect: Coord): Coord;
@@ -32,6 +41,6 @@ declare namespace $P {
         beforeUpdate(dt: number): void;
         update(dt: number): void;
         afterUpdate(dt: number): void;
-        draw(rel: Coord): boolean;
+        draw(rel: Coord, type: string): boolean;
     }
 }

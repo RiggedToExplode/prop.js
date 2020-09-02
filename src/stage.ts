@@ -1,5 +1,7 @@
 namespace $P {
     export class Stage extends Base { //Stage class to store and manage Prop objects.
+        protected _type: string = "stage";
+
         constructor(private _props: Prop[] = []) {
             super();
         }

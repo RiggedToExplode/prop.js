@@ -1,3 +1,17 @@
+interface View {
+    screenPos?: $P.Pair,
+    rotation?: number[],
+    vao?: string,
+    meshLength?: number,
+    program?: WebGLProgram,
+    texture?: WebGLTexture
+}
+
+interface Meshes {
+    triangles: Float32Array,
+    texTriangles: Float32Array
+}
+
 namespace $P {
     export class Prop extends Base { //Prop class to create, manage, and display 'objects' in the application.
         static toDegrees(radians: number): number { //Static method to convert radians to degrees.
@@ -12,23 +26,33 @@ namespace $P {
             return val / 1000;
         }
 
-        
-        public stage: Stage; //Declare the stage property.
+        static defaultMeshes: Meshes = {
+            triangles: new Float32Array([-10, 10,
+                                          -10, -10,
+                                          10, -10,
+                                          10, -10,
+                                          10, 10,
+                                          -10, 10]),
+            texTriangles: new Float32Array([0, 0,
+                                            0, 1,
+                                            1, 1,
+                                            1, 1,
+                                            1, 0,
+                                            0, 0])
+        }
 
-        public view: { screenPos: Pair, rotation: number[], triangles: Float32Array, texTriangles: Float32Array, texture: WebGLTexture } = {screenPos: undefined, rotation: undefined, triangles: undefined, texTriangles: undefined, texture: undefined};
+
+        private _view: View = {};
+
+        protected _type: string = "baseProp";
+
+        public stage: Stage;
 
 
         constructor(public pos: Coord = new Coord(0, 0), public radians: number = 0, public bounds: Coord[] = [new Coord(-10, -10), new Coord(10, -10), new Coord(10, 10), new Coord(-10, 10)]) {
             super();
 
-            this.view.screenPos = new Pair(0, 0);
-
-            this.view.triangles = new Float32Array([-10, -10,
-                                                10, -10,
-                                                -10, 10
-                                                -10, 10,
-                                                10, -10,
-                                                10, 10]);
+            this._view.screenPos = new Pair(0, 0);
         }
         
 
@@ -56,8 +80,12 @@ namespace $P {
         get degrees(): number { //Convert & get degrees
             return $P.Prop.toDegrees(this.radians);
         }
+
+        get view(): View {
+            return this._view;
+        }
         
-        get index() { //Get index of this prop in the parent stage's props array.
+        get index(): number { //Get index of this prop in the parent stage's props array.
             if (this.stage) {
                 return this.stage.props.indexOf(this);
             } else {
@@ -92,15 +120,16 @@ namespace $P {
             return this.radians; //Return the new radians value.
         }
 
-        rotateDegrees(degrees: number) { //Rotate this prop by provided degrees amount.
+        rotateDegrees(degrees: number): number { //Rotate this prop by provided degrees amount.
             return Prop.toDegrees(this.rotate(Prop.toRadians(degrees)));
         }
+
 
         remove(quiet: boolean) {} //Empty remove method to be redefined by derivative objects and classes.
 
         init(quiet: boolean) {} //Empty init method to be redefined by derivative objects and classes.
 
-        
+
         beforeUpdate(dt: number) {} //Empty beforeUpdate method to be redefined by derivative objects and classes.
 
         update(dt: number) { //Default update method to be redefined by derivative objects and classes.
@@ -109,9 +138,12 @@ namespace $P {
 
         afterUpdate(dt: number) {} //Empty afterUpdate method to be redefined by derivative objects and classes.
 
-        draw(rel: Coord) { //Default draw method to be redefined by derivative objects and classes.
-            this.view.screenPos.set(rel.x, rel.y);
-            this.view.rotation = [Math.sin(this.radians), Math.cos(this.radians)];
+
+        draw(rel: Coord, type: string) { //Default draw method to be redefined by derivative objects and classes.
+            this._view.vao = this._type;
+            this._view.meshLength = Prop.defaultMeshes.triangles.length;
+            this._view.screenPos.set(rel.x, rel.y);
+            this._view.rotation = [Math.sin(this.radians), Math.cos(this.radians)];
 
             return true; //Return true to tell Camera to draw this prop.
         }
