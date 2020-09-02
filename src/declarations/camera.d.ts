@@ -93,8 +93,9 @@ declare namespace $P {
         get width(): number;
         get height(): number;
         get gl(): WebGL2RenderingContext;
-        center(pos: number[]): void;
+        center(pos: Pair | number[]): void;
         centerEx(x: number, y: number): void;
+        resize(dimensions: Pair | number[]): void;
         draw(): void;
     }
 }

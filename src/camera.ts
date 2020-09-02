@@ -56,15 +56,12 @@ namespace $P {
                 out vec2 v_texCoord; //Pass texture coordinates to fragment shader.
 
                 void main() { //Main loop
+                    vec2 scaled = a_position * u_scale;
                     vec2 rotated = vec2(
-                        a_position.x * u_rotation.y + a_position.y * u_rotation.x,
-                        a_position.y * u_rotation.y - a_position.x * u_rotation.x
+                        scaled.x * u_rotation.y + scaled.y * u_rotation.x,
+                        scaled.y * u_rotation.y - scaled.x * u_rotation.x
                     );
-                    vec2 scaled = vec2(
-                        rotated.x * u_scale.x,
-                        rotated.y * u_scale.y
-                    );
-                    vec2 relToZero = scaled + u_offset; //Get the position of the current vertex relative to the top left of the canvas.
+                    vec2 relToZero = rotated + u_offset; //Get the position of the current vertex relative to the bottom left of the viewport.
                     vec2 zeroToOne = relToZero / u_resolution; //Get a 0 to 1 clipspace position from the gamespace position.
                     vec2 zeroToTwo = zeroToOne * 2.0; //Convert 0 to 1 to 0 to 2
                     vec2 clipSpace = zeroToTwo - 1.0; //Convert 0 to 2 to -1 to 1 clip space coordinates.
@@ -358,16 +355,21 @@ namespace $P {
             this.center([x, y]);
         }
 
+        resize(dimensions: Pair | number[]) {
+            this.dimensions.set(dimensions[0], dimensions[1]);
+        }
+
 
         draw() {
-            this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            this.gl.viewport(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y);
+
+            this.gl.enable(this.gl.SCISSOR_TEST);
+            this.gl.scissor(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y);
 
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
             this.stage.props.forEach(prop => {
-                let rel = Coord.add( //Find the prop's position relative to the top left of the canvas.
-                            Coord.subtract(prop.pos.copy(), this.stagePos),
-                          this.canvasPos);
+                let rel = Coord.subtract(Coord.multiply(prop.pos.copy(), this.scale), this.stagePos);
                 
                 if (prop.draw(rel, this._type)) {
                     this.gl.useProgram(prop.view.program ? prop.view.program : this.canvas.defaultProgram);
@@ -381,7 +383,7 @@ namespace $P {
                     this.gl.uniform2f(this.canvas.defaultUniformLocation.offset, prop.view.screenPos.x, prop.view.screenPos.y);
                     this.gl.uniform2f(this.canvas.defaultUniformLocation.scale, this.scale.x, this.scale.y);
                     this.gl.uniform2fv(this.canvas.defaultUniformLocation.rotation, prop.view.rotation);
-                    this.gl.uniform2f(this.canvas.defaultUniformLocation.resolution, this.canvas.width, this.canvas.height);
+                    this.gl.uniform2f(this.canvas.defaultUniformLocation.resolution, this.dimensions.x, this.dimensions.y);
 
                     this.gl.drawArrays(this.gl.TRIANGLES, 0, prop.view.meshLength / 2);
                 }
