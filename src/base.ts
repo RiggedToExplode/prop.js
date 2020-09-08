@@ -170,10 +170,10 @@ namespace $P {
 
 
         // GETTERS
-        get x(): number { //Get the x value of this Coord by querying memory. Setter at 'set x()'.
+        get x(): number { //Get the x value of this Coord by querying memory. Settable.
             return coreMemoryManager.query(this._loc);
         }
-        get y(): number { //Get the y value of this Coord by querying memory. Setter at 'set y()'.
+        get y(): number { //Get the y value of this Coord by querying memory. Settable.
             return coreMemoryManager.query(this._yLoc);
         }
 
@@ -187,10 +187,10 @@ namespace $P {
 
 
         // SETTERS
-        set x(val: number) { //Set the x value of this Coord by writing to its location in memory. Getter at 'get x()'.
+        set x(val: number) { //Set the x value of this Coord by writing to its location in memory. Gettable.
             coreMemoryManager.write(val, this._loc);
         }
-        set y(val: number) { //Set the y value of this Coord by writing to its location in memory. Getter at 'get y()'.
+        set y(val: number) { //Set the y value of this Coord by writing to its location in memory. Gettable.
             coreMemoryManager.write(val, this._yLoc);
         }
 
@@ -349,25 +349,25 @@ namespace $P {
 
 
         // GETTERS
-        get 0(): number { //Get X coordinate from virtual array index.
+        get 0(): number { //Get X coordinate from virtual array index. Settable.
             return this.x;
         }
 
-        get 1(): number { //Get Y coordinate from virtual array index.
+        get 1(): number { //Get Y coordinate from virtual array index. Settable.
             return this.y
         }
 
-        get type(): string { //Get the type of this class.
+        get type(): string { //Get the type of this class. Unsettable.
             return this._type;
         }
 
 
         // SETTERS
-        set 0(x: number) { //Set the X coordinate via a virtual array index.
+        set 0(x: number) { //Set the X coordinate via a virtual array index. Gettable.
             this.x = x;
         }
 
-        set 1(y: number) { //Set the Y coordinate via a virtual array index.
+        set 1(y: number) { //Set the Y coordinate via a virtual array index. Gettable.
             this.y = y;
         }
 
