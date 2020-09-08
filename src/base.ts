@@ -5,7 +5,7 @@
 /* SEE ALSO:
  *
  * assembly.ts for definition of coreModule (used by Coord) and its respective
- *      class 'AssemblyModule' as well as coreMemory and its respective class
+ *      class 'AssemblyModule,' as well as coreMemory and its respective class
  *      'BlockMemoryManager'.
  */
 
