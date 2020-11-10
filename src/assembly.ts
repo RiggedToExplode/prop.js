@@ -10,7 +10,7 @@ namespace $P {
      */
     export class MemoryManager {
         // PROPERTIES
-        protected target: number = 0; //What index to write new values at, provided there are no free indices.
+        protected target: number = 0; //What index to write new values at if there are no other free indices.
         protected free: number[] = []; //Array of indices that have been 'freed' and can be written to.
 
         protected _type = "memorymanager"; //Protected _type string to store the type of this class.
@@ -141,7 +141,7 @@ namespace $P {
          * Parameters: WebAssembly.Memory to manage, Array type, Size of blocks
          * 
          * Creates a new TypedArray of provided Array Type and assigns the buffer of the provided
-         * WebAssembly.Memory object to the buffer of the TypedArray. Stores blockSize parameter.
+         * WebAssembly.Memory object to the buffer of the TypedArray. Sets _blockSize property from parameter.
          */
         constructor(memory: WebAssembly.Memory, arrayType: string = "Float32Array", blockSize: number = 2) {
             super(memory, arrayType);
@@ -166,7 +166,7 @@ namespace $P {
                 
                 return loc;
             } else { //Otherwise throw an error because AssemblyBlockMemory cannot manage single values.
-                throw new Error("Cannot automatically allocate new values in AssemblyBlockMemory! Try using writeArr instead.");
+                throw new Error("Cannot automatically allocate new single values in AssemblyBlockMemory! Try using writeArr instead.");
             }
         }
 
@@ -178,7 +178,7 @@ namespace $P {
 
                 return loc;
             } else { //Otherwise
-                if (this.free[0] !== undefined) { //If there are free locations (free array stores first location in block)
+                if (this.free[0] !== undefined) { //If there are free locations (this.free array stores indices where first item in block is stored)
                     let out = this.free.pop(); //Get & remove the last one
 
                     this.arr.set(val, out); //Write the block to the free location
@@ -215,16 +215,15 @@ namespace $P {
         private _exports: any; //Declare exports array of exposed functions from WebAssembly
         private _module: any; //Declare WebAssembly module property.
 
-        constructor(public src: string) { //Store src string and AssemblyMemory that this module will use.
-
+        constructor(public src: string) { //Store src string that this module will use.
         }
 
         async init(memory: WebAssembly.Memory): Promise<any> { //Initialize this module by loading, compiling, and instantiating source.
             let obj = await fetch(this.src) //Fetch the source code,
-                           .then(response => //then
+                           .then(response =>
                                response.arrayBuffer() //Feed the source code into an array buffer,
                            )
-                           .then(bytes => { //then
+                           .then(bytes => {
                                return WebAssembly.instantiate(bytes, {js: {mem: memory}}); //Compile & instantiate the module from the source code and given AssemblyMemory.
                            });
                 
@@ -232,32 +231,32 @@ namespace $P {
             this._exports = obj.instance.exports; //Set the array of exported functions! We get to use these! :)
         }
 
-        get type(): string {
+        get type(): string { //Get type of this class. Unsettable.
             return this._type;
         }
 
-        get exports(): any { //Get exported functions publicly, as to keep from editing or overwriting them.
+        get exports(): any { //Get exported functions publicly, as to keep from editing or overwriting them. Unsettable.
             return this._exports;
         }
 
-        get memory(): WebAssembly.Memory {
+        get memory(): WebAssembly.Memory { //Shortcut getter to access WebAssembly.memory. Unsettable.
             return this._exports.memory;
         }
 
-        get module(): any { //Get module publicly, as to keep from editing it.
+        get module(): any { //Get WebAssembly module publicly, as to keep from editing it. Unsettable.
             return this._module;
         }
     }
 
     export var coreMemoryManager: BlockMemoryManager = undefined; //Declare the AssemblyBlockMemory that will be used for Prop.js' core functionalities.
 
-    export const coreModule: AssemblyModule = undefined; //Declare the AssemblyModule that holds the WebAssembly parts of Prop.js
+    export const coreModule: AssemblyModule = undefined; //Declare the AssemblyModule that holds the WebAssembly core of Prop.js
 
-    export async function init(src: string = "prop.wasm", arrayType: string = undefined, pagesInitial: number = 1, pagesMax: number = 256) { //Init the framework with either default values or stand-ins.
+    export async function init(src: string = "prop.wasm", arrayType: string = undefined, pagesInitial: number = 1, pagesMax: number = 256) { //Init the framework with either default values or custom values.
         this.coreModule = new AssemblyModule(src); //Create the module for all our WebAssembly.
 
         await this.coreModule.init(new WebAssembly.Memory({initial: pagesInitial, maximum: pagesMax})); //Init the module (load source code & compile).
 
-        this.coreMemoryManager = new BlockMemoryManager(this.coreModule.exports.memory, arrayType, 2); //Create the memory managerwe will use.
+        this.coreMemoryManager = new BlockMemoryManager(this.coreModule.memory, arrayType, 2); //Create the memory manager we will use.
     }
 }

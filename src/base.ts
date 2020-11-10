@@ -22,7 +22,7 @@ namespace $P {
          * Parameters: None
          * 
          * Generates unique ID based on epoch time and a random number, used to
-         * automatically assign UIDs to objects from child classes.
+         * automatically assign UIDs to objects.
          */
         static genUID(): string {
             return Date.now().toString(36) + "-" + Math.random().toString(36).substr(2, 9);
@@ -55,7 +55,7 @@ namespace $P {
     /* COORD CLASS
      * 
      * Class to store two-dimensional coordinate pairs in WebAssembly and manipulate
-     * them using functions written in C, or other compiled languages.
+     * them using functions written in C or other compiled languages.
      */
     export class Coord {
 
@@ -156,9 +156,9 @@ namespace $P {
          * Parameters: X Coordinate, Y Coordinate
          * 
          * This constructor takes in two numbers to represent the X and Y coordinates of the point meant to be
-         * described by the Coord, and then puts those points into WebAssembly memory by storing them in the 
-         * associated TypedArray. The constructor then stores the indices of the X and Y points in the
-         * TypedArray as _loc and _yLoc, and uses those indices to calculate a pointer to the Coord in WebAssembly.
+         * described by the Coord, and then puts those points into WebAssembly memory by writing them with 
+         * coreMemoryManager. The constructor then stores the indices of the X and Y points in the
+         * TypedArray as _loc and _yLoc, and uses those indices to calculate a pointer to the Coord.
          */
         constructor (x: number, y: number) {
             this._loc = coreMemoryManager.writeBlock([x, y]); //Write coordinates into block memory and get the index of X back.
