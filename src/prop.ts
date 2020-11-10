@@ -139,7 +139,7 @@ namespace $P {
         afterUpdate(dt: number) {} //Empty afterUpdate method to be redefined by derivative objects and classes.
 
 
-        draw(rel: Coord, type: string) { //Default draw method to be redefined by derivative objects and classes.
+        draw(rel: Coord, canvas: Canvas, type: string) { //Default draw method to be redefined by derivative objects and classes.
             this._view.vao = this._type;
             this._view.meshLength = Prop.defaultMeshes.triangles.length;
             this._view.screenPos.set(rel.x, rel.y);

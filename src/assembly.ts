@@ -1,10 +1,30 @@
-namespace $P {
-    export class MemoryManager { //Wrapper class for WebAssembly.Memory object, provides a TypedArray interface with "memory management".
-        protected _type = "memorymanager";
-        public arr: Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array; //Declare TypedArray interface
-        protected target: number = 0; //Declare location pointer for any new written values.
-        protected free: number[] = []; //Array of free memory locations to write to.
+/*=============*\
+|  ASSEMBLY.TS  |
+\*=============*/
 
+namespace $P {
+    /* MEMORYMANAGER CLASS
+     *
+     * Class to manage writing number data in such a way that WebAssembly can understand it, by utilizing
+     * TypedArrays and the access they provide to their underlying ArrayBuffer.
+     */
+    export class MemoryManager {
+        // PROPERTIES
+        protected target: number = 0; //What index to write new values at, provided there are no free indices.
+        protected free: number[] = []; //Array of indices that have been 'freed' and can be written to.
+
+        protected _type = "memorymanager"; //Protected _type string to store the type of this class.
+
+        public arr: Int8Array | Int16Array | Int32Array | Uint8Array | Uint16Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array; //The TypedArray this MemoryManager will use.
+
+
+        /* CONSTRUCTOR
+         * 
+         * Parameters: WebAssembly.Memory to manage, Array Type
+         * 
+         * Creates a new TypedArray of provided Array Type and assigns the buffer of the provided
+         * WebAssembly.Memory object to the buffer of the TypedArray.
+         */
         constructor(protected memory: WebAssembly.Memory, arrayType: string = "Float32Array") {
             switch (arrayType) { //Initialize arr based on data type provided as parameter.
                 case "Int8Array":
@@ -40,10 +60,22 @@ namespace $P {
             }
         }
 
-        get type(): string {
+
+        // GETTERS
+        get type(): string { //Get the type of this class. Unsettable.
             return this._type;
         }
 
+
+        /* write Method
+         * 
+         * Parameters: Value to write, Location to write at
+         * 
+         * Writes the given value to this.arr at the provided location. If no location is provided, the value
+         * will be written at the next index listed in this.free. If this.free is empty, the value will be 
+         * written at the 'end' of the array. Once this.arr is full, the memory buffer is grown to accomodate
+         * more values.
+         */
         write(val: number, loc: number = undefined) { //Write a value to the buffer via this.arr TypedArray
             if (loc !== undefined) { //If a location is provided, write there.
                 this.arr[loc] = val;
@@ -73,22 +105,61 @@ namespace $P {
             }
         }
         
-        query(loc: number) { //Get a value from the this.arr
+        /* query Method
+         * 
+         * Parameters: Location to query
+         * 
+         * Reads and returns a value from this.arr given the index to read.
+         */
+        query(loc: number) {
             return this.arr[loc];
         }
 
-        remove(loc: number) { //Free up a location in this.arr
+        /* remove Method
+         * 
+         * Parameters: Location to free
+         * 
+         * Marks an index in this.arr as free to write to by pushing the index to this.free.
+         */
+        remove(loc: number) {
             this.free.push(loc); //Add location to free array to signify writabililty. Value isn't actually affected until write() uses this free location.
         }
     }
 
-    export class BlockMemoryManager extends MemoryManager{ //AssemblyMemory, but meant to manage "blocks" (or arrays) of specified blockSize (length) at a time.
-        protected _type = "blockmemorymanager";
+    /* BLOCKMEMORYMANAGER CLASS
+     * 
+     * Class to manage writing number data in such a way that WebAssembly can understand it, same as
+     * MemoryManager, in blocks of two or more at once.
+     */
+    export class BlockMemoryManager extends MemoryManager{
+        // PROPERTIES
+        private _blockSize: number; //Length of the blocks this manager will manage.
+        protected _type = "blockmemorymanager"; //Protected _type string to store the type of this class.
 
-        constructor(memory: WebAssembly.Memory, arrayType: string = "Float32Array", private blockSize: number = 2 /* length pf each block */) {
+        /* CONSTRUCTOR
+         * 
+         * Parameters: WebAssembly.Memory to manage, Array type, Size of blocks
+         * 
+         * Creates a new TypedArray of provided Array Type and assigns the buffer of the provided
+         * WebAssembly.Memory object to the buffer of the TypedArray. Stores blockSize parameter.
+         */
+        constructor(memory: WebAssembly.Memory, arrayType: string = "Float32Array", blockSize: number = 2) {
             super(memory, arrayType);
+
+            this._blockSize = blockSize;
         }
 
+
+        // GETTERS
+        get blockSize(): number { //Get the block size of this memory manager. Unsettable.
+            return this._blockSize;
+        }
+
+
+        /* write Method
+         * 
+         * Parameters:
+         */
         write(val: number, loc: number = undefined): number { //Write a single value; only works if location is provided.
             if (loc !== undefined) { //If location is provided, write there.
                 this.arr[loc] = val;

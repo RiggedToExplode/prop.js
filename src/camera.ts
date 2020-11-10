@@ -95,7 +95,8 @@ namespace $P {
         private _el: HTMLCanvasElement; //Initialize private property to store the DOM canvas element.
         private _gl: WebGL2RenderingContext; //The WebGL2 rendering context of this Canvas object's <canvas> element.
         
-        private _buffer: WebGLBuffer;
+        private _loadedTextures: Map<WebGLTexture, number>;
+
         private _defaultProgram: WebGLProgram;
         private _defaultTexture: WebGLTexture;
         private _defaultAttribLocation: AttribLocations = {position: undefined, texCoord: undefined};
@@ -103,14 +104,10 @@ namespace $P {
         private _defaultBuffer: Buffers = {position: undefined, texCoord: undefined};
 
         public vertexArrays: Map<string, WebGLVertexArrayObject>;
-        public customPrograms: WebGLProgram[];
-
 
         constructor (private _id: string, width: number = 200, height: number = 100) {
             this._el = document.getElementById(_id) as HTMLCanvasElement; //Store the DOM-represented <canvas> element based on the _id parameter.
             this._gl = this._el.getContext("webgl2"); //Get the rendering context based on the _contextType parameter.
-            
-            this._buffer = this._gl.createBuffer();
 
             this._defaultTexture = this.createSolidTex([0, 255, 0, 255]);
             this._defaultProgram = this._compileProgram(Canvas.defaultShaderSource.vertex, Canvas.defaultShaderSource.fragment); //Create the WebGL2 program
@@ -128,7 +125,8 @@ namespace $P {
             this._defaultUniformLocation.texture = this._gl.getUniformLocation(this._defaultProgram, "u_texture"); //Get location of texture uniform.
             
             this.vertexArrays = new Map();
-            this.customPrograms = [];
+
+            this._loadedTextures = new Map();
 
             this.width = width; //Set width and height based on parameters.
             this.height = height;
@@ -182,6 +180,10 @@ namespace $P {
             return this._defaultUniformLocation;
         }
 
+        get loadedTextures(): Map<WebGLTexture, number> {
+            return this._loadedTextures;
+        }
+
         get id(): string {
             return this._id;
         }
@@ -195,8 +197,9 @@ namespace $P {
             return this._el.height;
         }
 
+        
 
-        private _compileProgram(vertexSource: string, fragmentSource: string) {
+        compileProgram(vertexSource: string, fragmentSource: string) {
             let vertex = this._gl.createShader(this._gl.VERTEX_SHADER);
 
             this._gl.shaderSource(vertex, vertexSource);
@@ -234,24 +237,24 @@ namespace $P {
             return program;
         }
 
-        createProgram(vertexSource: string, shaderSource: string) {
-            let program = this._compileProgram(vertexSource, shaderSource);
-            this.customPrograms.push(program);
-            return program;
-        }
 
         assignVertexArray(str: string) {
             this.vertexArrays.set(str, this._gl.createVertexArray());
         }
 
-        assignVertexArrays(arr: string[]) {
-            arr.forEach(element => {
-                this.assignVertexArray(element);
-            });
-        }
-
         getVertexArray(name: string) {
             return this.vertexArrays[name];
+        }
+
+        vertexArrayWrite(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, data: Float32Array, mode: GLint = this._gl.DYNAMIC_DRAW, ptr: VertexPointer = { size: 2, type: this._gl.FLOAT, normalize: false, stride: 0, offset: 0 }) {
+            this._gl.bindVertexArray(vao);
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer);
+
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, mode);
+
+            this._gl.enableVertexAttribArray(location);
+
+            this._gl.vertexAttribPointer(location, ptr.size, ptr.type, ptr.normalize, ptr.stride, ptr.offset);
         }
 
         preloadDefaults(input: MeshInfo | MeshInfo[]) {
@@ -282,16 +285,6 @@ namespace $P {
             }
         }
 
-        vertexArrayWrite(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, data: Float32Array, mode: GLint = this._gl.DYNAMIC_DRAW, ptr: VertexPointer = { size: 2, type: this._gl.FLOAT, normalize: false, stride: 0, offset: 0 }) {
-            this._gl.bindVertexArray(vao);
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer);
-
-            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, mode);
-
-            this._gl.enableVertexAttribArray(location);
-
-            this._gl.vertexAttribPointer(location, ptr.size, ptr.type, ptr.normalize, ptr.stride, ptr.offset);
-        }
 
         createSolidTex(color: number[]): WebGLTexture {
             let texture = this._gl.createTexture();
@@ -302,7 +295,7 @@ namespace $P {
             return texture;
         }
 
-        loadImageTex(src: string, texParam: TexParameters = { mag: undefined, min: undefined, s: undefined, t: undefined }, imageProps: ImageProperties = { level: undefined, internalFormat: undefined, width: undefined, height: undefined, border: undefined, srcFormat: undefined, srcType: undefined }): WebGLTexture {
+        createImageTex(src: string, texParam: TexParameters = { mag: undefined, min: undefined, s: undefined, t: undefined }, imageProps: ImageProperties = { level: undefined, internalFormat: undefined, width: undefined, height: undefined, border: undefined, srcFormat: undefined, srcType: undefined }): WebGLTexture {
             let texture = this._gl.createTexture();
             let image = new Image();
             let gl = this._gl;
@@ -402,13 +395,13 @@ namespace $P {
             this.stage.props.forEach(prop => {
                 let rel = Coord.subtract(Coord.multiply(prop.pos.copy(), this.scale), this.stagePos);
                 
-                if (prop.draw(rel, this._type)) {
-                    this.gl.useProgram(prop.view.program ? prop.view.program : this.canvas.defaultProgram);
+                if (prop.draw(rel, this.canvas, this._type)) {
+                    this.gl.useProgram(prop.view.program);
                     
                     this.gl.bindVertexArray(prop.view.vao);
 
                     this.gl.activeTexture(this.gl.TEXTURE0);
-                    this.gl.bindTexture(this.gl.TEXTURE_2D, ( prop.view.texture ? prop.view.texture : this.canvas.defaultTexture ));
+                    this.gl.bindTexture(this.gl.TEXTURE_2D, prop.view.texture);
 
                     this.gl.uniform1i(this.canvas.defaultUniformLocation.texture, 0);
                     this.gl.uniform2f(this.canvas.defaultUniformLocation.offset, prop.view.screenPos.x, prop.view.screenPos.y);
