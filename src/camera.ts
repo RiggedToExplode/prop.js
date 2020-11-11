@@ -2,6 +2,21 @@
 |  CAMERA.TS  |
 \*===========*/
 
+/* SEE ALSO:
+ *
+ * base.ts for definition of Coord, Pair, and Base, which are all used
+ *         occasionally in the Camera class.
+ */
+
+/* TODO
+ *
+ * - Make Camera class use back property when clearing viewport
+ * - Add a loadTexture method to Canvas that adds a texture to the loadedTextures map and loads it into WebGL
+ * - Add an unloadTexture method that removes a texture from the loadedTextures map and adds its number to a new freeTextures array.
+ * - Make Camera use multiple texture slots with new Canvas texture methods above.
+ * - Comments on interfaces?
+ */
+
 interface TexParameters {
     mag?: GLint,
     min?: GLint,
@@ -154,147 +169,190 @@ namespace $P {
 
 
         // GETTERS
-        get type(): string {
-            return "canvas";
-        }
-
-        get el(): HTMLCanvasElement { //Get the DOM representation of the <canvas> element.
-            return this._el;
-        }
-
-        get gl(): WebGL2RenderingContext { //Get the rendering context
-            return this._gl;
-        }
-
-        get defaultProgram(): WebGLProgram {
-            return this._defaultProgram;
-        }
-
-        get defaultTexture(): WebGLTexture {
-            return this._defaultTexture;
-        }
-
-        get defaultAttribLocation(): AttribLocations {
-            return this._defaultAttribLocation;
-        }
-
-        get defaultBuffer(): Buffers {
-            return this._defaultBuffer;
-        }
-
-        get defaultUniformLocation(): UniformLocations {
-            return this._defaultUniformLocation;
-        }
-
-        get loadedTextures(): Map<WebGLTexture, number> {
-            return this._loadedTextures;
-        }
-
-        get id(): string {
+        get id(): string { //Get the id of the <canvas> element this Canvas manages. Settable.
             return this._id;
         }
 
-
-        get width(): number { //Get the width of the <canvas> element.
+        get width(): number { //Get the width of the <canvas> element. Settable.
             return this._el.width;
         }
 
-        get height(): number { //Get the height of the <canvas> element.
+        get height(): number { //Get the height of the <canvas> element. Settable.
             return this._el.height;
+        }
+
+        get type(): string { //Get the type of this class. Unsettable.
+            return "canvas";
+        }
+
+        get el(): HTMLCanvasElement { //Get the DOM representation of the <canvas> element this Canvas manages. Unsettable.
+            return this._el;
+        }
+
+        get gl(): WebGL2RenderingContext { //Get the rendering context. Unsettable.
+            return this._gl;
+        }
+
+        get defaultProgram(): WebGLProgram { //Get the framework-default WebGL2 shader program. Unsettable.
+            return this._defaultProgram;
+        }
+
+        get defaultTexture(): WebGLTexture { //Get the framework-default texture. Unsettable.
+            return this._defaultTexture;
+        }
+
+        get defaultAttribLocation(): AttribLocations { //Get the object containing the locations for the framework-default attributes. Unsettable.
+            return this._defaultAttribLocation;
+        }
+
+        get defaultBuffer(): Buffers { //Get the object containing the framework-default buffers. Unsettable.
+            return this._defaultBuffer;
+        }
+
+        get defaultUniformLocation(): UniformLocations { //Get the object containing the locations for the framework-default uniforms. Unsettable.
+            return this._defaultUniformLocation;
+        }
+
+        get loadedTextures(): Map<WebGLTexture, number> { //Get the map of loaded textures and their numbers. Unsettable.
+            return this._loadedTextures;
         }
 
 
         // SETTERS
-        set id(id: string) { //Set the element id of this Canvas, and in doing so re-get the <canvas> element and rendering context.
+        set id(id: string) { //Set the element id of this Canvas, and in doing so reset the <canvas> element and rendering context. Gettable.
             this._id = id;
             this._el = document.getElementById(id) as HTMLCanvasElement;
             this._gl = this._el.getContext("webgl2");
         }
 
-        set width(width: number) { //Set the width of the <canvas> element.
+        set width(width: number) { //Set the width of the <canvas> element. Gettable.
             this._el.width = width;
         }
 
-        set height(height: number) { //Set the height of the <canvas> element.
+        set height(height: number) { //Set the height of the <canvas> element. Gettable.
             this._el.height = height;
         }
         
 
         // METHODS
+
+        /* COMPILEPROGRAM METHOD
+         * 
+         * Parameters: vertex shader source code, fragment shader source code
+         * 
+         * The compileProgram method takes in two strings which represent the source code for the vertex and fragment shaders, respectively.
+         * The method then creates, sets the source of, and attempts to compile both types of shaders. It checks the completion status once done,
+         * and exits if an error occurs. It then attempts to attach the two compiled shaders to a program and link that program. If anything fails
+         * there, the method exits.
+         */
         compileProgram(vertexSource: string, fragmentSource: string) {
-            let vertex = this._gl.createShader(this._gl.VERTEX_SHADER);
+            let vertex = this._gl.createShader(this._gl.VERTEX_SHADER); //Create the vertex shader
 
-            this._gl.shaderSource(vertex, vertexSource);
-            this._gl.compileShader(vertex);
+            this._gl.shaderSource(vertex, vertexSource); //Set the source code for the vertex shader
+            this._gl.compileShader(vertex); //Compile the vertex shader
 
-            if (!this._gl.getShaderParameter(vertex, this._gl.COMPILE_STATUS)) {
-                console.error(this._gl.getShaderInfoLog(vertex)); //Otherwise print an error,
+            if (!this._gl.getShaderParameter(vertex, this._gl.COMPILE_STATUS)) { //Check for a failed status (error)
+                console.error(this._gl.getShaderInfoLog(vertex)); //If failed, print the error
                 this._gl.deleteShader(vertex); //Delete the failed shader
                 throw new Error("WebGL shader compile error on vertex shader!"); //And exit with an error.
             }
 
-            let fragment = this._gl.createShader(this._gl.FRAGMENT_SHADER);
+            let fragment = this._gl.createShader(this._gl.FRAGMENT_SHADER); //Create the fragment shader
 
-            this._gl.shaderSource(fragment, fragmentSource);
-            this._gl.compileShader(fragment);
+            this._gl.shaderSource(fragment, fragmentSource); //Set the source code for the fragment shader
+            this._gl.compileShader(fragment); //Compile the fragment shader
 
-            if (!this._gl.getShaderParameter(fragment, this._gl.COMPILE_STATUS)) {
-                console.error(this._gl.getShaderInfoLog(fragment)); //Otherwise print an error,
+            if (!this._gl.getShaderParameter(fragment, this._gl.COMPILE_STATUS)) { //Check for a failed status (error)
+                console.error(this._gl.getShaderInfoLog(fragment)); //If failed, print the error
+                this._gl.deleteShader(vertex); //Delete the vertex shader to cleanup
                 this._gl.deleteShader(fragment); //Delete the failed shader
                 throw new Error("WebGL shader compile error on fragment shader!"); //And exit with an error.
             }
 
-            let program = this._gl.createProgram();
+            let program = this._gl.createProgram(); //Create the shader program.
             
-            this._gl.attachShader(program, vertex);
-            this._gl.attachShader(program, fragment);
-            this._gl.linkProgram(program);
+            this._gl.attachShader(program, vertex); //Attach the vertex shader
+            this._gl.attachShader(program, fragment); //Attach the fragment shader
+            this._gl.linkProgram(program); //And link the program
 
-            if (!this._gl.getProgramParameter(program, this._gl.LINK_STATUS)) {
-                console.error(this._gl.getProgramInfoLog(program));
-                this._gl.deleteProgram(program);
-                throw new Error("WebGL program linking error!");
+            if (!this._gl.getProgramParameter(program, this._gl.LINK_STATUS)) { //If linking results in failed status (error)
+                console.error(this._gl.getProgramInfoLog(program)); //If failed, print the error
+                this._gl.deleteShader(vertex); //Cleanup the vertex shader from earlier
+                this._gl.deleteShader(fragment); //Cleanup the fragment shader from earlier
+                this._gl.deleteProgram(program); //Delete the failed program
+                throw new Error("WebGL program linking error!"); //And exit with an error.
             }
 
-            return program;
+            return program; //If nothing failed, return the completed shader program.
         }
 
-
-        assignVertexArray(str: string) {
-            this.vertexArrays.set(str, this._gl.createVertexArray());
+        /* ASSIGNVERTEXARRAY METHOD
+         *
+         * Parameters: name of vertex array
+         * 
+         * The assignVertexArray method will assign the provided vertexArrayObject to the provided name in the 
+         * vertexArrays map. If no vertexArrayObject is provided, the method will create a new one and assign it
+         * to the provided name.
+         */
+        assignVertexArray(str: string, vertexArray: WebGLVertexArrayObject = undefined) {
+            this.vertexArrays.set(str, (vertexArray) ? vertexArray : this._gl.createVertexArray());
         }
-
+        
+        /* GETVERTEXARRAY METHOD
+         *
+         * Parameters: name of vertex array
+         * 
+         * The getVertexArray method returns the vertexArrayObject under the provided name in the vertexArrays
+         * map.
+         */
         getVertexArray(name: string) {
             return this.vertexArrays[name];
         }
 
+        /* VERTEXARRAYWRITE METHOD
+         * 
+         * Parameters: vertexArrayObject to save reference, buffer to store data in, location to write to, data to write, writing mode, pointer info
+         * 
+         * The vertexArrayWrite method will send the provided data to WebGL via the provided buffer and to the provided location,
+         * while storing the Javascript-side reference in the provided vertexArrayObject. It will also set the drawing mode and pointer values if 
+         * specified. 
+         */
         vertexArrayWrite(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, data: Float32Array, mode: GLint = this._gl.DYNAMIC_DRAW, ptr: VertexPointer = { size: 2, type: this._gl.FLOAT, normalize: false, stride: 0, offset: 0 }) {
-            this._gl.bindVertexArray(vao);
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer);
+            this._gl.bindVertexArray(vao); //Bind the specified vertexArrayObject
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer); //Bind the specified buffer
 
-            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, mode);
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, mode); //Write the provided data to the buffer.
 
-            this._gl.enableVertexAttribArray(location);
+            this._gl.enableVertexAttribArray(location); //Enable the vertex array.
 
-            this._gl.vertexAttribPointer(location, ptr.size, ptr.type, ptr.normalize, ptr.stride, ptr.offset);
+            this._gl.vertexAttribPointer(location, ptr.size, ptr.type, ptr.normalize, ptr.stride, ptr.offset); //Set all the pointer info.
         }
 
+        /* PRELOADDEFAULTS METHOD
+         *
+         * Parameters: MeshInfo object containing framework-default assortment of meshes, OR array of said objects
+         * 
+         * The preloadDefaults method takes a MeshInfo object or an array of MeshInfo objects. For each object provided,
+         * the method writes all meshes (arrays of points) that the framework handles by default (position and texture coordinates)
+         * to a new vertexArrayObject, which is in turn stored in the vertexArrays map under the string provided in the `name` property
+         * of the MeshInfo object.
+         */
         preloadDefaults(input: MeshInfo | MeshInfo[]) {
-            if (Array.isArray(input)) {
-                input.forEach(meshes => {
-                    this.assignVertexArray(meshes.name);
+            if (Array.isArray(input)) { //If input is array
+                input.forEach(meshes => { //For each object in array
+                    this.assignVertexArray(meshes.name); //Create and assign a new vertexArrayObject with the name of this object
 
-                    this.vertexArrayWrite(this.getVertexArray(meshes.name),
+                    this.vertexArrayWrite(this.getVertexArray(meshes.name), //Write the position data using the defaults for position
                             this.defaultBuffer.position,
                             this.defaultAttribLocation.position, 
                             meshes.triangles);
-                    this.vertexArrayWrite(this.getVertexArray(meshes.name),
+                    this.vertexArrayWrite(this.getVertexArray(meshes.name), //Write the texture coordinate data using the defaults for texture coordinates
                             this.defaultBuffer.texCoord,
                             this.defaultAttribLocation.texCoord,
                             meshes.texTriangles);
                 });
-            } else {
-                this.assignVertexArray(input.name);
+            } else { //If input is single object
+                this.assignVertexArray(input.name); //Do same as above, but only once.
 
                 this.vertexArrayWrite(this.getVertexArray(input.name),
                         this.defaultBuffer.position,
@@ -307,24 +365,37 @@ namespace $P {
             }
         }
 
-
+        /* CREATESOLIDTEX METHOD
+         * 
+         * Parameters: array of length 3 containing red, green, and blue values.
+         * 
+         * The createSolidTex method creates a WebGL texture and writes one pixel of the provided color to the texture.
+         * It then returns the texture.
+         */
         createSolidTex(color: number[]): WebGLTexture {
-            let texture = this._gl.createTexture();
+            let texture = this._gl.createTexture(); //Create the texture.
 
-            this._gl.bindTexture(this._gl.TEXTURE_2D, texture);
-            this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, 1, 1, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, new Uint8Array(color));
+            this._gl.bindTexture(this._gl.TEXTURE_2D, texture); //Bind the current texture to work on it.
+            this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, 1, 1, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, new Uint8Array(color)); //Write one pixel of color.
 
-            return texture;
+            return texture; //Return the texture.
         }
 
+        /* CREATEIMAGETEX METHOD
+         *
+         * Parameters: image source, texture parameters object, image properties object
+         * 
+         * The createImageTex method takes a provided image source and turns it into a WebGL texture, using the provided texture parameters and image properties
+         * where provided. It then returns the texture.
+         */
         createImageTex(src: string, texParam: TexParameters = { mag: undefined, min: undefined, s: undefined, t: undefined }, imageProps: ImageProperties = { level: undefined, internalFormat: undefined, width: undefined, height: undefined, border: undefined, srcFormat: undefined, srcType: undefined }): WebGLTexture {
-            let texture = this._gl.createTexture();
-            let image = new Image();
-            let gl = this._gl;
-            let imageProp = imageProps;
+            let texture = this._gl.createTexture(); //Create the texture
+            let image = new Image(); //Create the image
+            let gl = this._gl; //MESSY!!! Create a local-scope reference to this._gl so that it can be accessed from inside image.onload
+            let imageProp = imageProps; //ALSO MESSY!! Another local-scope reassignment so that imageProps can be accessed inside image.onload
 
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, 0,
+            gl.bindTexture(gl.TEXTURE_2D, texture); //Bind the texture as the current working texture.
+            gl.texImage2D(gl.TEXTURE_2D, 0, //Write a default solid color to the texture so it can render before the image loads.
                         gl.RGBA,
                         1,
                         1,
@@ -333,14 +404,14 @@ namespace $P {
                         gl.UNSIGNED_BYTE,
                         new Uint8Array([128, 0, 128, 255]));
 
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texParam.mag ? texParam.mag : gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texParam.mag ? texParam.mag : gl.LINEAR); //Set the texture parameters if provided, otherwise use defaults.
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texParam.min ? texParam.min : gl.NEAREST_MIPMAP_LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, texParam.s ? texParam.s : gl.REPEAT);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, texParam.t ? texParam.t : gl.REPEAT);
 
-            image.onload = function() {
-               gl.bindTexture(gl.TEXTURE_2D, texture);
-               gl.texImage2D(gl.TEXTURE_2D,
+            image.onload = function() { //Define function to run when image is fully loaded
+               gl.bindTexture(gl.TEXTURE_2D, texture); //Bind the texture again (in case current working texture has changed).
+               gl.texImage2D(gl.TEXTURE_2D, //Write the image data to the texture, using image properties where provided and defaults otherwise.
                             imageProp.level ? imageProp.level : 0,
                             imageProp.internalFormat ? imageProp.internalFormat : gl.RGBA,
                             imageProp.width ? imageProp.width : image.width,
@@ -348,93 +419,142 @@ namespace $P {
                             imageProp.border ? imageProp.border : 0,
                             imageProp.srcFormat ? imageProp.srcFormat : gl.RGBA,
                             imageProp.srcType ? imageProp.srcType : gl.UNSIGNED_BYTE, image);
-               gl.generateMipmap(gl.TEXTURE_2D);
+               gl.generateMipmap(gl.TEXTURE_2D); //Generate the mipmaps for the image.
             }
 
-            image.src = src;
+            image.src = src; //Set the image object's source to that provided. Sets events in motion to eventually call image.onload above once image is loaded from the source.
 
-            return texture;
+            return texture; //Return the texture (does not contain image at first!)
         }
     }    
 
-    export class Camera extends Base { //Camera class to manage drawing Props from Stage onto Canvas.
-        protected _type: string = "baseCamera"
-        public back: string = "black"; //Declare and initialize background color property
+    /* CAMERA CLASS
+     *
+     * Camera class takes a Stage object and draws all of the Props on that stage. It does so by turning each Prop's stage position
+     * into a position relative to the canvas. It then passes this value into the Prop's draw method. Each Prop's draw method can vary
+     * wildly, but the Camera concerns itself with one thing: if the Prop's draw method returns true, it means that the Prop would like
+     * the Camera to continue drawing in the default fashion.
+     * 
+     * This setup allows each Prop to define its own complicated method of drawing within its draw method, or to leave the drawing up 
+     * to the framework's default procedures.
+     */
+    export class Camera extends Base {
+        // PROPERTIES
+        protected _type: string = "baseCamera" //The type of this class.
+
+        public back: string = "black"; //The background color this camera will draw with.
 
 
+        /* CONSTRUCTOR
+         *
+         * Parameters: the stage to draw from, the canvas to draw on, the position on the stage that the bottom left of the camera sits, the bottom left of the camera's 
+         *     drawing bounds on the canvas, the dimensions of the camera on the canvas, how much the camera scales the image before drawing, whether or not to clip the output
+         */
         constructor(public stage: Stage, public canvas: Canvas, public stagePos: Coord = new Coord(0, 0), public canvasPos: Coord = new Coord(0, 0), public dimensions: Coord = new Coord(200, 100), public scale: Coord = new Coord(1, 1), public clip: boolean = true) {
-            super();
+            super(); //Call Base constructor
 
-            this.gl.clearColor(0, 0, 0, 0);
+            this.gl.clearColor(0, 0, 0, 0); //Set empty, transparent clear color.
         }
 
 
-        set width(width: number) { //Set width and height of this camera.
-            this.dimensions[0] = width;
+        // GETTERS
+        get gl() { //Get the rendering context of the canvas this camera is drawing on. Unsettable.
+            return this.canvas.gl;
         }
 
-        set height(height: number) {
-            this.dimensions[1] = height;
-        }
-
-
-        get width(): number { //Get the width and height of this camera.
+        get width(): number { //Get the width of this camera. Settable.
             return this.dimensions[0];
         }
 
-        get height(): number {
+        get height(): number { //Get the height of this camera. Settable.
             return this.dimensions[1];
         }
 
 
-        get gl() { //Get the rendering context for this camera.
-            return this.canvas.gl;
+        // SETTERS
+        set width(width: number) { //Set width of this camera. Gettable.
+            this.dimensions[0] = width;
+        }
+
+        set height(height: number) { //Set height of this camera. Gettable.
+            this.dimensions[1] = height;
         }
 
 
-        center(pos: Pair | number[]) { //Center this camera on a given position in the stage.
+        // METHODS
+        /* CENTER METHOD
+         * 
+         * Parameters: Pair or array of length 2 describing point to center on.
+         * 
+         * The center method sets the Camera's stagePos property in order to center the Camera on the
+         * provided point on the stage.
+         */
+        center(pos: Pair | number[]) {
             this.stagePos.x = pos[0] - this.dimensions.x / 2;
             this.stagePos.y = pos[1] - this.dimensions.y / 2;
         }
-
-        centerEx(x: number, y: number) { //Center this camera on a position given by two specific number coordinates on the stage.
+        
+        /* CENTEREX METHOD
+         *
+         * Parameters: x coordinate of point to center on, y coordinate of point to center on
+         * 
+         * Same as center method, but x and y coordinates are split up. Unnecessary?
+         */
+        centerEx(x: number, y: number) {
             this.center([x, y]);
         }
 
+        /* RESIZE METHOD
+         *
+         * Parameters: Pair or array of length 2 describing desired width and height of the camera.
+         * 
+         * The resize method sets the width and height of the Camera on the Canvas to the provided values at once.
+         */
         resize(dimensions: Pair | number[]) {
             this.dimensions.set(dimensions[0], dimensions[1]);
         }
 
-
+        /* DRAW METHOD
+         *
+         * Parameters: None
+         * 
+         * The Camera's draw method should be called once per frame. The draw method starts by setting the viewport of the rendering
+         * context, and enables scissoring (or clipping) of the context. It then clears the previous frame. After that, the draw method
+         * iterates through every Prop in the Camera's Stage, and calls that Prop's draw method, passing in the position of the Prop on the 
+         * canvas as calculated using its stage position and the Camera's other settings (stagePos, canvasPos, and scale), as well as the canvas
+         * the Camera is drawing on and the type of the Camera. The Prop can use any of this information as desired inside its own draw method.
+         * The Prop could decide to go about drawing itself, and return false. If the draw method returns true, however, the Camera will draw 
+         * the Prop in a "standard" procedure.
+         */
         draw() {
-            this.gl.viewport(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y);
+            this.gl.viewport(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y); //Set the viewport
 
-            this.gl.enable(this.gl.SCISSOR_TEST);
-            this.gl.scissor(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y);
+            this.gl.enable(this.gl.SCISSOR_TEST); //Enable scissoring
+            this.gl.scissor(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y); //Set the scissoring dimensions
 
-            this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+            this.gl.clear(this.gl.COLOR_BUFFER_BIT); //Clear the viewport
 
-            this.stage.props.forEach(prop => {
-                let rel = Coord.subtract(Coord.multiply(prop.pos.copy(), this.scale), this.stagePos);
+            this.stage.props.forEach(prop => { //For each prop
+                let rel = Coord.subtract(Coord.multiply(prop.pos.copy(), this.scale), this.stagePos); //Calculate Prop's position on the canvas
                 
-                if (prop.draw(rel, this.canvas, this._type)) {
-                    this.gl.useProgram(prop.view.program);
+                if (prop.draw(rel, this.canvas, this._type)) { //Call Prop's draw method, continue if returns true
+                    this.gl.useProgram(prop.view.program); //Use Prop's preferred shader program.
                     
-                    this.gl.bindVertexArray(prop.view.vao);
+                    this.gl.bindVertexArray(prop.view.vao); //Use the Prop's chosen vertexArrayObject (expected to contain MeshInfo defaults)
 
-                    this.gl.activeTexture(this.gl.TEXTURE0);
-                    this.gl.bindTexture(this.gl.TEXTURE_2D, prop.view.texture);
+                    this.gl.activeTexture(this.gl.TEXTURE0); //Set the active texture
+                    this.gl.bindTexture(this.gl.TEXTURE_2D, prop.view.texture); //Bind the prop's texture to the active texture
 
-                    this.gl.uniform1i(this.canvas.defaultUniformLocation.texture, 0);
-                    this.gl.uniform2f(this.canvas.defaultUniformLocation.offset, prop.view.screenPos.x, prop.view.screenPos.y);
-                    this.gl.uniform2f(this.canvas.defaultUniformLocation.scale, this.scale.x, this.scale.y);
-                    this.gl.uniform2fv(this.canvas.defaultUniformLocation.rotation, prop.view.rotation);
-                    this.gl.uniform2f(this.canvas.defaultUniformLocation.resolution, this.dimensions.x, this.dimensions.y);
+                    this.gl.uniform1i(this.canvas.defaultUniformLocation.texture, 0); //Pass in the current texture slot to WebGL
+                    this.gl.uniform2f(this.canvas.defaultUniformLocation.offset, prop.view.screenPos.x, prop.view.screenPos.y); //Pass in the Prop's location relative to the bottom left of the canvas
+                    this.gl.uniform2f(this.canvas.defaultUniformLocation.scale, this.scale.x, this.scale.y); //Pass in the Camera's scale setting
+                    this.gl.uniform2fv(this.canvas.defaultUniformLocation.rotation, prop.view.rotation); //Pass in the Prop's rotation
+                    this.gl.uniform2f(this.canvas.defaultUniformLocation.resolution, this.dimensions.x, this.dimensions.y); //Pass in the Camera's output resolution
 
-                    this.gl.drawArrays(this.gl.TRIANGLES, 0, prop.view.meshLength / 2);
+                    this.gl.drawArrays(this.gl.TRIANGLES, 0, prop.view.meshLength / 2); //Call the BIG WebGL function to execute our shader program. Magic happens here!!
                 }
 
-                rel.remove();    
+                rel.remove(); //Deallocate the Coord storing our Prop's canvas position.
             });
         }
     }
