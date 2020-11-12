@@ -10,9 +10,6 @@
 
 /* TODO
  *
- * - Make Camera class use back property when clearing viewport
- * - Add a loadTexture method to Canvas that adds a texture to the loadedTextures map and loads it into WebGL
- * - Add an unloadTexture method that removes a texture from the loadedTextures map and adds its number to a new freeTextures array.
  * - Make Camera use multiple texture slots with new Canvas texture methods above.
  * - Comments on interfaces?
  */
@@ -121,7 +118,9 @@ namespace $P {
         private _el: HTMLCanvasElement; //The canvas element this object deals with.
         private _gl: WebGL2RenderingContext; //The WebGL2 rendering context being used to draw.
         
-        private _loadedTextures: Map<WebGLTexture, number>; //A Map storing associations between a loaded WebGLTexture and its number within WebGL.
+        private _loadedTextures: Map<WebGLTexture, number> = new Map(); //A Map storing associations between a loaded WebGLTexture and its number within WebGL.
+        private _slotPtr: number = 0; //Pointer of slot for next loaded texture, provided there are no free slots.
+        private _freeSlots: number[] = []; //Array of numbers representing freed texture slots.
 
         private _defaultProgram: WebGLProgram; //The default WebGL shader program to draw with.
         private _defaultTexture: WebGLTexture; //The default texture to use when drawing.
@@ -426,6 +425,72 @@ namespace $P {
 
             return texture; //Return the texture (does not contain image at first!)
         }
+
+        /* LOADTEXTURE METHOD
+         *
+         * Parameters: texture to load
+         * 
+         * The loadTexture method loads the specified texture into WebGL, using a texture slot which is determined by grabbing
+         * the most recently freed texture slot, or the next texture slot available if none are free. If the next texture slot
+         * in line is past the computer's texture capacity and no free slots are available, this method resets to the start and
+         * is forced to clear the loaded textures.
+         * 
+         * If the specified texture is already loaded, this method just returns the texture's slot.
+         */
+        loadTexture(texture: WebGLTexture): number {
+            if (this._loadedTextures.has(texture)) { //If the texture is already loaded
+                return this.getSlot(texture); //Return the slot
+            }
+
+            let slot: number; //Declare slot variable
+
+            if (this._freeSlots[0] !== undefined) { //If freed slots exist
+                slot = this._freeSlots.pop(); //Use most recent freed slot
+            } else { //Otherwise use next slot in line
+                if (this._loadedTextures.size >= this.gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS) { //But, if we have loaded the maximum number of textures
+                    console.log("TEXTURE OVERFLOW; all loaded textures reset"); //Notify user about texture overflow, as this isn't a preferred scenario.
+                    this._loadedTextures = new Map(); //Clear the loaded textures map
+                    this._freeSlots = []; //Reset all free slots
+                    this._slotPtr = 0; //Set the slot pointer back to 0
+                }
+
+                slot = this._slotPtr; //Resort to next slot on list.
+
+                this._slotPtr++; //Increment the slot pointer.
+            }
+
+            this.gl.activeTexture(this.gl.TEXTURE0 + slot); //Set the active texture to the chosen slot.
+            this.gl.bindTexture(this.gl.TEXTURE_2D, texture); //Bind the texture to the activated slot.
+            this._loadedTextures.set(texture, slot); //Store the texture's slot in the _loadedTextures map.
+
+            return slot; //Return the slot the texture has been loaded in.
+        }
+
+        /* GETSLOT METHOD
+         *
+         * Parameters: texture to get slot of
+         * 
+         * The getSlot method returns the texture slot that the specified texture is loaded at, according to the _loadedTextures map.
+         */
+        getSlot(texture: WebGLTexture): number {
+            return this._loadedTextures.get(texture);
+        }
+
+        /* FREETEXTURE METHOD
+         *
+         * Parameters: texture to free up the slot of
+         * 
+         * The freeTexture method removes a texture from the _loadedTextures map and adds its slot to the _freeSlots array, signifying that 
+         * the texture is no longer guaranteed to be loaded in any slot, and allowing its previous slot to be used for loading of a new 
+         * texture.
+         */
+        freeTexture(texture: WebGLTexture): number {
+            let slot = this.getSlot(texture); //Get slot of specified texture.
+
+            this._freeSlots.push(slot); //Add the slot to array of free slots.
+            
+            return slot; //Return the freed slot.
+        }
     }    
 
     /* CAMERA CLASS
@@ -442,7 +507,7 @@ namespace $P {
         // PROPERTIES
         protected _type: string = "baseCamera" //The type of this class.
 
-        public back: string = "black"; //The background color this camera will draw with.
+        protected _back: number[] = [0, 0, 0, 0]; //The background color this camera will draw with.
 
 
         /* CONSTRUCTOR
@@ -453,7 +518,7 @@ namespace $P {
         constructor(public stage: Stage, public canvas: Canvas, public stagePos: Coord = new Coord(0, 0), public canvasPos: Coord = new Coord(0, 0), public dimensions: Coord = new Coord(200, 100), public scale: Coord = new Coord(1, 1), public clip: boolean = true) {
             super(); //Call Base constructor
 
-            this.gl.clearColor(0, 0, 0, 0); //Set empty, transparent clear color.
+            this.gl.clearColor(this._back[0], this._back[1], this._back[2], this._back[3]); //Set clearColor to default background color.
         }
 
 
@@ -470,6 +535,10 @@ namespace $P {
             return this.dimensions[1];
         }
 
+        get back(): number[] { //Get the background color this Camera will clear with. Settable.
+            return this._back;
+        }
+
 
         // SETTERS
         set width(width: number) { //Set width of this camera. Gettable.
@@ -478,6 +547,11 @@ namespace $P {
 
         set height(height: number) { //Set height of this camera. Gettable.
             this.dimensions[1] = height;
+        }
+
+        set back(arr: number[]) { //Set the background clear color of this Camera and communicate the change to WebGL. Gettable.
+            this.back = arr;
+            this.gl.clearColor(arr[0], arr[1], arr[2], arr[3]);
         }
 
 
@@ -542,8 +616,7 @@ namespace $P {
                     
                     this.gl.bindVertexArray(prop.renderInfo.vao); //Use the Prop's chosen vertexArrayObject (expected to contain MeshInfo defaults)
 
-                    this.gl.activeTexture(this.gl.TEXTURE0); //Set the active texture
-                    this.gl.bindTexture(this.gl.TEXTURE_2D, prop.renderInfo.texture); //Bind the prop's texture to the active texture
+                    this.gl.activeTexture(this.gl.TEXTURE0 + this.canvas.loadTexture(prop.renderInfo.texture)); //Get texture slot from Canvas (Canvas will load texture if not already) and activate that slot.
 
                     this.gl.uniform1i(this.canvas.defaultUniformLocation.texture, 0); //Pass in the current texture slot to WebGL
                     this.gl.uniform2f(this.canvas.defaultUniformLocation.offset, prop.renderInfo.screenPos.x, prop.renderInfo.screenPos.y); //Pass in the Prop's location relative to the bottom left of the canvas
