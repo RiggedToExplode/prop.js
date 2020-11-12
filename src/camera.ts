@@ -430,10 +430,10 @@ namespace $P {
 
     /* CAMERA CLASS
      *
-     * Camera class takes a Stage object and draws all of the Props on that stage. It does so by turning each Prop's stage position
-     * into a position relative to the canvas. It then passes this value into the Prop's draw method. Each Prop's draw method can vary
-     * wildly, but the Camera concerns itself with one thing: if the Prop's draw method returns true, it means that the Prop would like
-     * the Camera to continue drawing in the default fashion.
+     * The Camera class manages execution of the draw loop. It does this by taking a Stage object and drawing all of the Props on that stage.
+     * This is done by turning each Prop's stage position into a position relative to the canvas. Then the Camera passes this value into the
+     * Prop's draw hook. Each Prop's draw method can vary wildly, but the Camera concerns itself with one thing: if the Prop's draw method
+     * returns true, it means that the Prop would like the Camera to continue drawing in the default fashion.
      * 
      * This setup allows each Prop to define its own complicated method of drawing within its draw method, or to leave the drawing up 
      * to the framework's default procedures.
