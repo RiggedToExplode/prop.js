@@ -2,6 +2,13 @@
 |  PROP.TS  |
 \*=========*/
 
+/* SEE ALSO:
+ * 
+ * base.ts for its definition of the Coord and Pair classes
+ * 
+ * camera.ts for its definition of the Camera class
+ */
+
 interface RenderInfo {
     screenPos?: $P.Pair,
     rotation?: number[],
