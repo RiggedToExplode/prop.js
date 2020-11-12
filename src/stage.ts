@@ -100,7 +100,7 @@ namespace $P {
             let index = prop.index; //Get the index of the prop.
 
             if (index !== -1) { //If the index does not equal -1 (prop is in _props array)
-                prop.remove(quiet); //Call the prop's remove method.
+                prop.cleanup(quiet); //Call the prop's cleanup method.
                 prop.stage = null; //Remove this stage from the prop's stage property.
                 this._props.splice(index, 1); //Remove the prop from the _props array.
 
@@ -123,7 +123,7 @@ namespace $P {
             if (prop) { //If the prop could be found:
                 let index = prop.index; //Store the prop's index.
 
-                prop.remove(quiet); //Call the prop's remove method.
+                prop.cleanup(quiet); //Call the prop's cleanup method.
                 prop.stage = null; //Remove this stage from the prop's stage property.
                 this._props.splice(index, 1); //Remove the prop from the _props array.
 
@@ -144,7 +144,7 @@ namespace $P {
             if (this._props[index]) { //If a prop exists at the given index:
                 let prop = this._props[index]; //Store the prop.
 
-                prop.remove(quiet); //Call the prop's remove method.
+                prop.cleanup(quiet); //Call the prop's cleanup method.
                 prop.stage = null; //Remove this stage from the prop's stage property.
                 this._props.splice(index, 1); //Remove the prop from the _props array.
 
