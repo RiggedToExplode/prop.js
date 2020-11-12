@@ -14,7 +14,8 @@ declare namespace $P {
         };
         removePropByIndex(index: number, quiet?: boolean): Prop;
         moveProp(curIndex: number, newIndex: number): number;
+        clear(): Prop[];
         update(dt: number): void;
-        updateLoop(interval?: number): void;
+        startUpdateCycle(interval?: number): void;
     }
 }

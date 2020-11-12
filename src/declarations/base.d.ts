@@ -10,14 +10,14 @@ declare namespace $P {
     class Coord {
         static add(coord1: Coord, coord2: Coord): Coord;
         static subtract(coord1: Coord, coord2: Coord): Coord;
-        static factor(coord: Coord, factor: number): Coord;
+        static factor(coord: Coord, val: number): Coord;
         static multiply(coord1: Coord, coord2: Coord): Coord;
-        static divisor(coord: Coord, factor: number): Coord;
+        static divisor(coord: Coord, val: number): Coord;
         static divide(coord1: Coord, coord2: Coord): Coord;
         static dist(coord1: Coord, coord2: Coord): any;
-        private _ptr;
         private _loc;
         private _yLoc;
+        private _ptr;
         private _type;
         constructor(x: number, y: number);
         get x(): number;
@@ -44,11 +44,11 @@ declare namespace $P {
         static dist(pair1: Pair | number[], pair2: Pair | number[]): number;
         private _type;
         constructor(x: number, y: number);
-        set 0(x: number);
-        set 1(y: number);
         get 0(): number;
         get 1(): number;
         get type(): string;
+        set 0(x: number);
+        set 1(y: number);
         set(x: number | number[], y?: number): void;
         copy(): Pair;
         toArr(): number[];
