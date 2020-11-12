@@ -538,20 +538,20 @@ namespace $P {
                 let rel = Coord.subtract(Coord.multiply(prop.pos.copy(), this.scale), this.stagePos); //Calculate Prop's position on the canvas
                 
                 if (prop.draw(rel, this.canvas, this._type)) { //Call Prop's draw method, continue if returns true
-                    this.gl.useProgram(prop.view.program); //Use Prop's preferred shader program.
+                    this.gl.useProgram(prop.renderInfo.program); //Use Prop's preferred shader program.
                     
-                    this.gl.bindVertexArray(prop.view.vao); //Use the Prop's chosen vertexArrayObject (expected to contain MeshInfo defaults)
+                    this.gl.bindVertexArray(prop.renderInfo.vao); //Use the Prop's chosen vertexArrayObject (expected to contain MeshInfo defaults)
 
                     this.gl.activeTexture(this.gl.TEXTURE0); //Set the active texture
-                    this.gl.bindTexture(this.gl.TEXTURE_2D, prop.view.texture); //Bind the prop's texture to the active texture
+                    this.gl.bindTexture(this.gl.TEXTURE_2D, prop.renderInfo.texture); //Bind the prop's texture to the active texture
 
                     this.gl.uniform1i(this.canvas.defaultUniformLocation.texture, 0); //Pass in the current texture slot to WebGL
-                    this.gl.uniform2f(this.canvas.defaultUniformLocation.offset, prop.view.screenPos.x, prop.view.screenPos.y); //Pass in the Prop's location relative to the bottom left of the canvas
+                    this.gl.uniform2f(this.canvas.defaultUniformLocation.offset, prop.renderInfo.screenPos.x, prop.renderInfo.screenPos.y); //Pass in the Prop's location relative to the bottom left of the canvas
                     this.gl.uniform2f(this.canvas.defaultUniformLocation.scale, this.scale.x, this.scale.y); //Pass in the Camera's scale setting
-                    this.gl.uniform2fv(this.canvas.defaultUniformLocation.rotation, prop.view.rotation); //Pass in the Prop's rotation
+                    this.gl.uniform2fv(this.canvas.defaultUniformLocation.rotation, prop.renderInfo.rotation); //Pass in the Prop's rotation
                     this.gl.uniform2f(this.canvas.defaultUniformLocation.resolution, this.dimensions.x, this.dimensions.y); //Pass in the Camera's output resolution
 
-                    this.gl.drawArrays(this.gl.TRIANGLES, 0, prop.view.meshLength / 2); //Call the BIG WebGL function to execute our shader program. Magic happens here!!
+                    this.gl.drawArrays(this.gl.TRIANGLES, 0, prop.renderInfo.meshLength / 2); //Call the BIG WebGL function to execute our shader program. Magic happens here!!
                 }
 
                 rel.remove(); //Deallocate the Coord storing our Prop's canvas position.
