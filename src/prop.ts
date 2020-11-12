@@ -1,4 +1,8 @@
-interface View {
+/*=========*\
+|  PROP.TS  |
+\*=========*/
+
+interface RenderInfo {
     screenPos?: $P.Pair,
     rotation?: number[],
     vao?: string,
@@ -7,26 +11,18 @@ interface View {
     texture?: WebGLTexture
 }
 
-interface Meshes {
-    triangles: Float32Array,
-    texTriangles: Float32Array
-}
-
 namespace $P {
-    export class Prop extends Base { //Prop class to create, manage, and display 'objects' in the application.
-        static toDegrees(radians: number): number { //Static method to convert radians to degrees.
-            return (radians / Math.PI) * 180;
-        }
-
-        static toRadians(degrees: number): number { //Static method to convert degrees to radians.
-            return (degrees / 180) * Math.PI;
-        }
-
-        static perSecond(val: number): number { //Static method to convert a value into a 'per-millisecond' version, for use with update() and dt.
-            return val / 1000;
-        }
-
-        static defaultMeshes: Meshes = {
+    /* PROP CLASS
+     *
+     * The Prop class forms the base class for all game objects to inherit from. It exposes methods to manage movement and rotation,
+     * and communicates with the framework's WebAssembly core via the Coord manipulations it performs. It also provides the structure
+     * that all game object-like classes should follow, through the hook methods such as draw() and update() that are called during
+     * important game cycles.
+     */
+    export class Prop extends Base {
+        // STATIC PROPERTIES
+        static defaultMeshes: MeshInfo = { //The default MeshInfo object for the Prop object (a triangle).
+            name: "prop",
             triangles: new Float32Array([-10, 10,
                                           -10, -10,
                                           10, -10,
@@ -42,50 +38,77 @@ namespace $P {
         }
 
 
-        private _view: View = {};
+        // STATIC METHODS
+        /* TODEGREES METHOD
+         * 
+         * Parameters: number to convert in radians
+         * 
+         * The toDegrees method returns a conversion of the provided rotation, as described in radians, to degrees.
+         */
+        static toDegrees(radians: number): number {
+            return (radians / Math.PI) * 180;
+        }
 
-        protected _type: string = "baseProp";
+        /* TORADIANS METHOD
+         *
+         * Parameters: number to convert in degrees
+         * 
+         * The toRadians method returns a conversion of the provided rotation, as described in degrees, to radians.
+         */
+        static toRadians(degrees: number): number {
+            return (degrees / 180) * Math.PI;
+        }
 
-        public stage: Stage;
+        /* PERSECOND METHOD
+         *
+         * Parameters: value to convert to a per-second form
+         * 
+         * The perSecond method takes in any number value as input, with the intention of using that value as a rate of change per second.
+         * It then divides that value by 1000 and returns the result, making the returned number effectively a "per-millisecond" rate of change
+         * that, when used inside of an update() method, provides the same rate of change as the original value.
+         */
+        static perSecond(val: number): number {
+            return val / 1000;
+        }
 
 
+        // PROPERTIES
+        private _renderInfo: RenderInfo = {}; //The rendering information for this Prop, such as its mesh and texture coordinates.
+
+        protected _type: string = "baseProp"; //The type of this class.
+
+        public stage: Stage; //The stage this Prop is on.
+
+        /* CONSTRUCTOR
+         *
+         * Parameters: starting position of the Prop, starting rotation of the Prop, bounds or "hitbox" of the Prop
+         * 
+         * The Prop constructor sets all of the important position information, and fills in the screen position property of its rendering info with a default (0,0).
+         */
         constructor(public pos: Coord = new Coord(0, 0), public radians: number = 0, public bounds: Coord[] = [new Coord(-10, -10), new Coord(10, -10), new Coord(10, 10), new Coord(-10, 10)]) {
             super();
 
-            this._view.screenPos = new Pair(0, 0);
+            this._renderInfo.screenPos = new Pair(0, 0);
         }
         
-
-        set x(x: number) { //Set x coord
-            this.pos.x = x;
-        }
-        
-        set y(y: number) { //Set y coord
-            this.pos.y = y;
-        }
-        
-        set degrees(degrees: number) { //Convert & set radians
-            this.radians = Prop.toRadians(degrees);
-        }
-
-
-        get x(): number { //Get x coord
+        // GETTERS
+        get x(): number { //Get x coordinate. Settable.
             return this.pos.x;
         }
         
-        get y(): number { //Get y coord
+        get y(): number { //Get y coordinate. Settable.
             return this.pos.y;
         }
         
-        get degrees(): number { //Convert & get degrees
+        get degrees(): number { //Get rotation in degrees. Settable.
             return $P.Prop.toDegrees(this.radians);
         }
 
-        get view(): View {
-            return this._view;
+        get renderInfo(): RenderInfo { //Get this Prop's renderInfo. Unsettable.
+            return this._renderInfo;
         }
         
-        get index(): number { //Get index of this prop in the parent stage's props array.
+        get index(): number { //Get index of this prop in the parent stage's props array. Unsettable.
             if (this.stage) {
                 return this.stage.props.indexOf(this);
             } else {
@@ -94,56 +117,164 @@ namespace $P {
         }
 
 
-        setPos(x: number, y: number) { //Set position of this prop using separate x and y coordinate arguments.
+        // SETTERS
+        set x(x: number) { //Set x coordinate. Gettable.
+            this.pos.x = x;
+        }
+        
+        set y(y: number) { //Set y coordinate. Gettable.
+            this.pos.y = y;
+        }
+        
+        set degrees(degrees: number) { //Set rotation of this Prop using degrees. Gettable.
+            this.radians = Prop.toRadians(degrees);
+        }
+
+
+        // METHODS 
+        /* SETPOS METHOD
+         *
+         * Parameters: x coordinate, y coordinate
+         * 
+         * The setPos method sets both of the Prop's coordinate values at once.
+         */
+        setPos(x: number, y: number) {
             this.pos.x = x;
             this.pos.y = y;
         }
-
-        move(vect: Coord): Coord { //Move this prop by coordinates specified in provided Coord.
+        
+        /* MOVE METHOD
+         *
+         * Parameters: Coord describing how much to move in x and y direction.
+         * 
+         * The move method performs a Coord add operation on the Prop's position Coord, using the provided Coord
+         * as the values to add.
+         */
+        move(vect: Coord): Coord {
             return this.pos = Coord.add(this.pos, vect);
         }
+        
+        /* MOVEPR METHOD
+         *
+         * Parameters: Pair describing how much to move in x and y direction.
+         * 
+         * The movePr method adds the provided Pair to the Prop's position Coord.
+         */
+        movePr(vect: Pair): Coord {
+            this.x += vect.x;
+            this.y += vect.y;
+            return this.pos;
+        }
 
-        moveEx(x: number, y: number): Coord { //Move this prop by coordinates specified by specific x and y coordinate arguments.
+        /* MOVEEX METHOD
+         *
+         * Parameters: what to add to x coordinate, what to add to y coordinate
+         * 
+         * The moveEx method adds the provided x coordinate to the Prop's x position, and adds the provided y coordinate to the
+         * Prop's y position.
+         */
+        moveEx(x: number, y: number): Coord {
             this.setPos(this.x + x, this.y + y);
             return this.pos;
         }
 
-        rotate(radians: number): number { //Rotate this prop by provided radians amount.
-            this.radians += radians % 2 * Math.PI; //Rotate the prop by the amount, modulo operator to wrap around after 2PI radians.
+        /* ROTATE METHOD
+         * 
+         * Parameters: how much to rotate Prop by in radians
+         * 
+         * The rotate method rotates the Prop by the given amount in radians, ensuring that the resulting rotation does not
+         * surpass 2PI radians or fall below 0 radians. The method then returns the resulting rotation.
+         */
+        rotate(radians: number): number {
+            this.radians += radians % 2 * Math.PI; //Rotate the prop by the amount, use modulo operator to ignore all multiples of 2PI (a complete rotation).
 
-            if (this.radians <= 0) { //If resultant radians is less than zero
-                this.radians = 2 * Math.PI + this.radians; //Loop back to 2PI
-            } else if (this.radians >= Math.PI) { //Otherwise, if resultant radians is more than 2PI
-                this.radians -= 2 * Math.PI; //Loop back to 0.
+            if (this.radians <= 0) { //If resultant rotation is less than zero
+                this.radians += 2 * Math.PI; //Add 2PI
+            } else if (this.radians >= Math.PI) { //Otherwise, if resultant rotation is more than 2PI
+                this.radians -= 2 * Math.PI; //Subtract 2PI.
             }
 
-            return this.radians; //Return the new radians value.
+            return this.radians; //Return the new rotation.
         }
 
-        rotateDegrees(degrees: number): number { //Rotate this prop by provided degrees amount.
+        /* ROTATEDEGREES METHOD
+         *
+         * Parameters: how much to rotate Prop by in degrees
+         * 
+         * The rotateDegrees method converts the provided number to radians and then rotates the Prop by the resulting value. Afterward
+         * it returns the resulting rotation, in degrees.
+         */
+        rotateDegrees(degrees: number): number {
             return Prop.toDegrees(this.rotate(Prop.toRadians(degrees)));
         }
 
 
-        remove(quiet: boolean) {} //Empty remove method to be redefined by derivative objects and classes.
+        // HOOK METHODS
 
-        init(quiet: boolean) {} //Empty init method to be redefined by derivative objects and classes.
+        /* REMOVE HOOK
+         *
+         * Parameters: whether or not to remove Prop "quietly"
+         * 
+         * The remove hook is meant to be called when a Prop is removed from the Stage, but it could be called at any point if so desired.
+         * The remove hook is a way of signaling to the Prop that it should perform any cleanup operations, or somehow convey its destruction, etc.
+         */
+        remove(quiet: boolean) {}
 
+        /* INIT HOOK
+         *
+         * Parameters: whether or not to init prop "quietly"
+         * 
+         * The init hook is meant to be called when a Prop is added to the Stage, but it could be called at any point if so desired.
+         * The init hook is a way of signaling to the Prop that it should perform any initialization operations, or somehow convey its creation, etc.
+         */
+        init(quiet: boolean) {}
 
-        beforeUpdate(dt: number) {} //Empty beforeUpdate method to be redefined by derivative objects and classes.
+        /* BEFOREUPDATE HOOK
+         *
+         * Parameters: milliseconds since last update cycle
+         * 
+         * The beforeUpdate hook is meant to be called for every Prop as much as possible (in what is called the update cycle), in order for the Props to move,
+         * observe their surroundings, perform physics calculations, or anything else. beforeUpdate is called before update in the update cycle.
+         */
+        beforeUpdate(dt: number) {}
 
-        update(dt: number) { //Default update method to be redefined by derivative objects and classes.
+        /* UPDATE HOOK
+         *
+         * Parameters: milliseconds since last update cycle
+         * 
+         * The update hook is meant to be called for every Prop as much as possible (in what is called the update cycle), in order for the Props to move,
+         * observe their surroundings, perform physics calculations, or anything else. update is called after beforeUpdate and before afterUpdate in the 
+         * update cycle.
+         */
+        update(dt: number) {
             this.rotateDegrees(0.18 * dt);
         }
 
-        afterUpdate(dt: number) {} //Empty afterUpdate method to be redefined by derivative objects and classes.
+        /* AFTERUPDATE HOOK
+         *
+         * Parameters: milliseconds since last update cycle
+         * 
+         * The afterUpdate hook is meant to be called for every Prop as much as possible (in what is called the update cycle), in order for the Props to move,
+         * observe their surroundings, perform physics calculations, or anything else. afterUpdate is called after update in the update cycle.
+         */
+        afterUpdate(dt: number) {}
 
-
-        draw(rel: Coord, canvas: Canvas, type: string) { //Default draw method to be redefined by derivative objects and classes.
-            this._view.vao = this._type;
-            this._view.meshLength = Prop.defaultMeshes.triangles.length;
-            this._view.screenPos.set(rel.x, rel.y);
-            this._view.rotation = [Math.sin(this.radians), Math.cos(this.radians)];
+        /* DRAW HOOK
+         *
+         * Parameters: position relative to bottom-left of canvas, canvas the Prop is being drawn on, type of Camera that called the hook method
+         * 
+         * The draw hook is meant to be called by Cameras that are drawing the Prop onto a Canvas. The Camera first calculates the Prop's position from
+         * the bottom-left of the Canvas, then passes that information to the draw hook alongside the Canvas to draw on and the Camera's type. The Prop is
+         * then meant to use this hook to set any important drawing properties (including its renderInfo, if so desired) before returning true to signify to the Camera that
+         * the drawing process should continue as is default.
+         * 
+         * If the draw hook returns false, the Camera leaves all the drawing up to the Prop and skips over it entirely.
+         */
+        draw(rel: Coord, canvas: Canvas, type: string) {
+            this._renderInfo.vao = Prop.defaultMeshes.name; //Set the vao this prop renders with to the default "prop" VAO
+            this._renderInfo.meshLength = Prop.defaultMeshes.triangles.length; //Set the meshLength to the length of the default "prop" mesh
+            this._renderInfo.screenPos.set(rel.x, rel.y); //Set the desired screenPos to the position the Camera found for us
+            this._renderInfo.rotation = [Math.sin(this.radians), Math.cos(this.radians)]; //Set the rotation coordinates based on the Prop's current rotation.
 
             return true; //Return true to tell Camera to draw this prop.
         }
