@@ -251,7 +251,7 @@ namespace $P {
          * be used to deallocate unneeded Coords in order to avoid memory leaks.
          */
         remove() {
-            coreMemoryManager.removeBlock(this._loc);
+            coreMemoryManager.free(this._loc);
         }
     }
 
