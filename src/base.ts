@@ -16,7 +16,7 @@ namespace $P {
      * assigns unique IDs based on time and random string.
      */
     export class Base {
-
+        // STATIC METHODS
         /* genUID Static Method
          * 
          * Parameters: None
