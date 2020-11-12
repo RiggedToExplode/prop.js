@@ -6,6 +6,8 @@
  * 
  * base.ts for its definition of the Coord and Pair classes
  * 
+ * stage.ts for its definition of the Stage class
+ * 
  * camera.ts for its definition of the Camera class
  */
 
@@ -214,18 +216,28 @@ namespace $P {
         rotateDegrees(degrees: number): number {
             return Prop.toDegrees(this.rotate(Prop.toRadians(degrees)));
         }
-
+        
+        /* REMOVE METHOD
+         *
+         * Parameters: whether to remove this Prop "quietly"
+         * 
+         * The remove method removes this Prop from the stage it is currently in by calling removeProp on the Stage. It passes the specified
+         * quiet value into the Stage's removeProp method.
+         */
+        remove(quiet: boolean) {
+            return this.stage.removeProp(this, quiet);
+        }
 
         // HOOK METHODS
 
-        /* REMOVE HOOK
+        /* CLEANUP HOOK
          *
          * Parameters: whether or not to remove Prop "quietly"
          * 
-         * The remove hook is meant to be called when a Prop is removed from the Stage, but it could be called at any point if so desired.
-         * The remove hook is a way of signaling to the Prop that it should perform any cleanup operations, or somehow convey its destruction, etc.
+         * The cleanup hook is meant to be called when a Prop is removed from the Stage, but it could be called at any point if so desired.
+         * The cleanup hook is a way of signaling to the Prop that it should perform any cleanup operations, or somehow convey its destruction, etc.
          */
-        remove(quiet: boolean) {}
+        cleanup(quiet: boolean) {}
 
         /* INIT HOOK
          *
