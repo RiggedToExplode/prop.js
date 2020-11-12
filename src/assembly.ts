@@ -10,8 +10,8 @@ namespace $P {
      */
     export class MemoryManager {
         // PROPERTIES
-        protected target: number = 0; //What index to write new values at if there are no other free indices.
-        protected free: number[] = []; //Array of indices that have been 'freed' and can be written to.
+        protected _target: number = 0; //What index to write new values at if there are no other free indices.
+        protected _free: number[] = []; //Array of indices that have been 'freed' and can be written to.
 
         protected _type = "memorymanager"; //Protected _type string to store the type of this class.
 
@@ -67,35 +67,35 @@ namespace $P {
         }
 
 
-        /* write Method
+        /* WRITE METHOD
          * 
          * Parameters: Value to write, Location to write at
          * 
          * Writes the given value to this.arr at the provided location. If no location is provided, the value
-         * will be written at the next index listed in this.free. If this.free is empty, the value will be 
+         * will be written at the next index listed in this._free. If this._free is empty, the value will be 
          * written at the 'end' of the array. Once this.arr is full, the memory buffer is grown to accomodate
          * more values.
          */
-        write(val: number, loc: number = undefined) { //Write a value to the buffer via this.arr TypedArray
+        write(val: number, loc: number = undefined) {
             if (loc !== undefined) { //If a location is provided, write there.
                 this.arr[loc] = val;
 
                 return loc;
             } else { //Otherwise use automatic allocation.
-                if (this.free[0] !== undefined) { //If there are any free memory locations
-                   let out = this.free.pop(); //Get the last free location and remove it
+                if (this._free[0] !== undefined) { //If there are any free memory locations
+                   let out = this._free.pop(); //Get the last free location and remove it
 
                    this.arr[out] = val; //Write to the free location
 
                    return out; //Return the location where written
-                } else { //Otherwise, resort to the target pointer to write at end of array.
-                    let out = this.target;
+                } else { //Otherwise, resort to the _target pointer to write at end of array.
+                    let out = this._target;
 
                     this.arr[out] = val; //Write at the end of the array.
 
-                    this.target++; //Increment the pointer for next time we need it.
+                    this._target++; //Increment the pointer for next time we need it.
 
-                    if (this.target >= this.arr.length) { //If target exceeds length of this.arr
+                    if (this._target >= this.arr.length) { //If _target exceeds length of this.arr
                         this.memory.grow(1); //Grow the buffer by 1 page (64kB) and thus extend the array.
                         this.arr = new Float32Array(this.memory.buffer);
                     }
@@ -105,7 +105,7 @@ namespace $P {
             }
         }
         
-        /* query Method
+        /* QUERY METHOD
          * 
          * Parameters: Location to query
          * 
@@ -115,23 +115,23 @@ namespace $P {
             return this.arr[loc];
         }
 
-        /* remove Method
+        /* FREE METHOD
          * 
          * Parameters: Location to free
          * 
-         * Marks an index in this.arr as free to write to by pushing the index to this.free.
+         * Marks an index in this.arr as free to write to by pushing the index to this._free.
          */
-        remove(loc: number) {
-            this.free.push(loc); //Add location to free array to signify writabililty. Value isn't actually affected until write() uses this free location.
+        free(loc: number) {
+            this._free.push(loc); //Add location to _free array to signify writabililty. Value isn't actually affected until write() uses this free location.
         }
     }
 
     /* BLOCKMEMORYMANAGER CLASS
      * 
      * Class to manage writing number data in such a way that WebAssembly can understand it, same as
-     * MemoryManager, in blocks of two or more at once.
+     * MemoryManager, but in blocks of two or more at once.
      */
-    export class BlockMemoryManager extends MemoryManager{
+    export class BlockMemoryManager extends MemoryManager {
         // PROPERTIES
         private _blockSize: number; //Length of the blocks this manager will manage.
         protected _type = "blockmemorymanager"; //Protected _type string to store the type of this class.
@@ -144,9 +144,9 @@ namespace $P {
          * WebAssembly.Memory object to the buffer of the TypedArray. Sets _blockSize property from parameter.
          */
         constructor(memory: WebAssembly.Memory, arrayType: string = "Float32Array", blockSize: number = 2) {
-            super(memory, arrayType);
+            super(memory, arrayType); //Call the super constructor to setup this class as a MemoryManager
 
-            this._blockSize = blockSize;
+            this._blockSize = blockSize; //Set the private _blockSize property from the parameter.
         }
 
 
@@ -156,42 +156,54 @@ namespace $P {
         }
 
 
-        /* write Method
+        /* WRITE METHOD
          * 
-         * Parameters:
+         * Parameters: value to write, location to write at
+         * 
+         * The write method writes the provided value to the provided location. This method will throw an Error
+         * if no location is provided as, unlike a regular MemoryManager, a BlockMemoryManager cannot allocate
+         * space for single values.
          */
-        write(val: number, loc: number = undefined): number { //Write a single value; only works if location is provided.
+        write(val: number, loc: number): number {
             if (loc !== undefined) { //If location is provided, write there.
-                this.arr[loc] = val;
+                this.arr[loc] = val; //Write the value.
                 
-                return loc;
-            } else { //Otherwise throw an error because AssemblyBlockMemory cannot manage single values.
+                return loc; //Return location written to.
+            } else { //Otherwise throw an error because BlockMemoryManager cannot manage single values.
                 throw new Error("Cannot automatically allocate new single values in AssemblyBlockMemory! Try using writeArr instead.");
             }
         }
 
-        writeBlock(val: number[], loc: number = undefined) { //Write a block of values.
-            val.length = this.blockSize; //Truncate or extend val parameter to the correct length.
+        /* WRITEBLOCK METHOD
+         *
+         * Parameters: array of values to write, location to write to
+         * 
+         * The writeBlock method writes a set of numbers (a block) to a given location in this manager's array. If no location is
+         * provided, the method finds a location to write the values by checking the _free array and then resorting to the _target
+         * pointer if the _free array is empty.
+         */
+        writeBlock(val: number[], loc: number = undefined) {
+            val.length = this.blockSize; //Truncate or extend val parameter to the correct length. (Force input to fit blockLength)
 
             if (loc !== undefined) { //If a location is provided
                 this.arr.set(val, loc); //Write the block there.
 
                 return loc;
             } else { //Otherwise
-                if (this.free[0] !== undefined) { //If there are free locations (this.free array stores indices where first item in block is stored)
-                    let out = this.free.pop(); //Get & remove the last one
+                if (this._free[0] !== undefined) { //If there are free locations (this._free array stores indices where first item in block is stored)
+                    let out = this._free.pop(); //Get & remove the last one
 
                     this.arr.set(val, out); //Write the block to the free location
 
                     return out; //Return the location of the first value written.
-                } else { //Otherwise resort to target pointer
-                    let out = this.target;
+                } else { //Otherwise resort to _target pointer
+                    let out = this._target;
 
-                    this.arr.set(val, out); //Write block at target pointer
+                    this.arr.set(val, out); //Write block at _target pointer
 
-                    this.target += this.blockSize; //Increment target pointer by the size of a block
+                    this._target += this.blockSize; //Increment _target pointer by the size of a block
 
-                    if (this.target >= this.arr.length) { //If target pointer exceeds this.arr length
+                    if (this._target >= this.arr.length) { //If _target pointer exceeds this.arr length
                         this.memory.grow(1); //Grow the buffer by 1 page (64kB), thus extending this.arr
                         this.arr = new Float32Array(this.memory.buffer);
                     }
@@ -200,37 +212,31 @@ namespace $P {
                 }
             }
         }
-
-        remove(loc: number): number { //Method to overwrite inherited remove() method, as AssemblyBlockMemory cannot handle removing single values.
-            throw new Error("Cannot remove singular value in AssemblyBlockMemory! Try removeArr instead.");
-        }
-
-        removeBlock(loc: number) { //Free up a block of values.
-            this.free.push(loc); //Add the first location to the this.free array, thus signifying that the entire block is free.
-        }
     }
 
-    export class AssemblyModule { //Wrapper class for WebAssembly modules, handles loading via init() method.
-        private _type: string = "assemblymodule";
-        private _exports: any; //Declare exports array of exposed functions from WebAssembly
-        private _module: any; //Declare WebAssembly module property.
+    /* ASSEMBLYMODULE CLASS
+     *
+     * The AssemblyModule class manages the creation and initialization of a WebAssembly module from source. It exposes
+     * the compiled WebAssembly functions for ease of access, and makes the process of creating the WebAssembly module easier.
+     */
+    export class AssemblyModule {
+        // PROPERTIES
+        private _type: string = "assemblymodule"; //The type of this class
+        private _exports: any; //Array of exposed functions from WebAssembly
+        private _module: any; //The WebAssembly module
 
-        constructor(public src: string) { //Store src string that this module will use.
+
+        /* CONSTRUCTOR
+         *
+         * Parameters: source code for WebAssembly module
+         * 
+         * This constructor function only stores the source code of the WebAssembly module.
+         */
+        constructor(public src: string) {
         }
 
-        async init(memory: WebAssembly.Memory): Promise<any> { //Initialize this module by loading, compiling, and instantiating source.
-            let obj = await fetch(this.src) //Fetch the source code,
-                           .then(response =>
-                               response.arrayBuffer() //Feed the source code into an array buffer,
-                           )
-                           .then(bytes => {
-                               return WebAssembly.instantiate(bytes, {js: {mem: memory}}); //Compile & instantiate the module from the source code and given AssemblyMemory.
-                           });
-                
-            this._module = obj.module; //Set the module property.
-            this._exports = obj.instance.exports; //Set the array of exported functions! We get to use these! :)
-        }
 
+        // GETTERS
         get type(): string { //Get type of this class. Unsettable.
             return this._type;
         }
@@ -246,16 +252,55 @@ namespace $P {
         get module(): any { //Get WebAssembly module publicly, as to keep from editing it. Unsettable.
             return this._module;
         }
+
+
+        // METHODS
+        /* INIT ASYNCHRONOUS METHOD
+         *
+         * Parameters: memory options to initialize with
+         * 
+         * The init method starts the process of instantiating the WebAssembly module by fetching the source code
+         * from the src URL that was provided on construction. It then puts the source code into an array buffer
+         * and uses the array buffer to instantiate the module with the provided memory options.
+         */
+        async init(memory: WebAssembly.Memory): Promise<any> {
+            let obj = await fetch(this.src) //Fetch the source code,
+                           .then(response =>
+                               response.arrayBuffer() //Get source code as array buffer
+                           )
+                           .then(bytes => {
+                               return WebAssembly.instantiate(bytes, {js: {mem: memory}}); //Compile & instantiate the module from the source code (in buffer) and given AssemblyMemory.
+                           });
+                
+            this._module = obj.module; //Set the module property.
+            this._exports = obj.instance.exports; //Set the array of exported functions! We get to use these! :)
+        }
     }
 
-    export var coreMemoryManager: BlockMemoryManager = undefined; //Declare the AssemblyBlockMemory that will be used for Prop.js' core functionalities.
+    /* COREMEMORYMANAGER OBJECT
+     *
+     * The coreMemoryManager object is the memory manager that Prop.js uses for its core funcitonalities, which are mainly
+     * Coord manipulations.
+     */
+    export var coreMemoryManager: BlockMemoryManager = undefined;
 
-    export const coreModule: AssemblyModule = undefined; //Declare the AssemblyModule that holds the WebAssembly core of Prop.js
+    /* COREMODULE OBJECT
+     *
+     * The coreModule object is the compiled & instantiated WebAssembly module that Prop.js gets the functions from to perform
+     * its core functionalities, mainly Coord manipulations.
+     */
+    export const coreModule: AssemblyModule = undefined;
 
-    export async function init(src: string = "prop.wasm", arrayType: string = undefined, pagesInitial: number = 1, pagesMax: number = 256) { //Init the framework with either default values or custom values.
+    /* INIT FUNCTION
+     *
+     * Parameters: source code for the WebAssembly module, type of array to use for memory manipulation, initial number of memory pages, maximum number of memory pages
+     * 
+     * The init function initializes the framework's core WebAssembly module and creates the core memory manager the module will use.
+     */
+    export async function init(src: string = "prop.wasm", arrayType: string = undefined, pagesInitial: number = 1, pagesMax: number = 256) {
         this.coreModule = new AssemblyModule(src); //Create the module for all our WebAssembly.
 
-        await this.coreModule.init(new WebAssembly.Memory({initial: pagesInitial, maximum: pagesMax})); //Init the module (load source code & compile).
+        await this.coreModule.init(new WebAssembly.Memory({initial: pagesInitial, maximum: pagesMax})); //Init the module (load source code & compile), while passing in memory options.
 
         this.coreMemoryManager = new BlockMemoryManager(this.coreModule.memory, arrayType, 2); //Create the memory manager we will use.
     }
