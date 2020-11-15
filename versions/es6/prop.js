@@ -1056,7 +1056,7 @@ var $P;
          * If the draw hook returns false, the Camera leaves all the drawing up to the Prop and skips over it entirely.
          */
         draw(rel, canvas, type) {
-            this._renderInfo.vao = Prop.defaultMeshes.name; //Set the vao this prop renders with to the default "prop" VAO
+            this._renderInfo.vao = canvas.getVertexArray(Prop.defaultMeshes.name); //Set the vao this prop renders with to the default "prop" VAO
             this._renderInfo.meshLength = Prop.defaultMeshes.triangles.length; //Set the meshLength to the length of the default "prop" mesh
             this._renderInfo.screenPos.set(rel.x, rel.y); //Set the desired screenPos to the position the Camera found for us
             this._renderInfo.rotation = [Math.sin(this.radians), Math.cos(this.radians)]; //Set the rotation coordinates based on the Prop's current rotation.
@@ -1247,7 +1247,7 @@ var $P;
          * while storing the Javascript-side reference in the provided vertexArrayObject. It will also set the drawing mode and pointer values if
          * specified.
          */
-        vertexArrayWrite(vao, buffer, location, data, mode = this._gl.DYNAMIC_DRAW, ptr = { size: 2, type: this._gl.FLOAT, normalize: false, stride: 0, offset: 0 }) {
+        vertexArrayWrite(vao, buffer, location, data, mode = this._gl.STATIC_DRAW, ptr = { size: 2, type: this._gl.FLOAT, normalize: false, stride: 0, offset: 0 }) {
             this._gl.bindVertexArray(vao); //Bind the specified vertexArrayObject
             this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer); //Bind the specified buffer
             this._gl.bufferData(this._gl.ARRAY_BUFFER, data, mode); //Write the provided data to the buffer.
@@ -1263,7 +1263,7 @@ var $P;
          * to a new vertexArrayObject, which is in turn stored in the vertexArrays map under the string provided in the `name` property
          * of the MeshInfo object.
          */
-        preloadDefaults(input) {
+        loadDefaultMeshes(input) {
             if (Array.isArray(input)) { //If input is array
                 input.forEach(meshes => {
                     this.assignVertexArray(meshes.name); //Create and assign a new vertexArrayObject with the name of this object
@@ -1522,15 +1522,22 @@ var $P;
             this.stage.props.forEach(prop => {
                 let rel = $P.Coord.subtract($P.Coord.multiply(prop.pos.copy(), this.scale), this.stagePos); //Calculate Prop's position on the canvas
                 if (prop.draw(rel, this.canvas, this._type)) { //Call Prop's draw method, continue if returns true
-                    this.gl.useProgram(prop.renderInfo.program); //Use Prop's preferred shader program.
-                    this.gl.bindVertexArray(prop.renderInfo.vao); //Use the Prop's chosen vertexArrayObject (expected to contain MeshInfo defaults)
-                    this.gl.activeTexture(this.gl.TEXTURE0 + this.canvas.loadTexture(prop.renderInfo.texture)); //Get texture slot from Canvas (Canvas will load texture if not already) and activate that slot.
-                    this.gl.uniform1i(this.canvas.defaultUniformLocation.texture, 0); //Pass in the current texture slot to WebGL
-                    this.gl.uniform2f(this.canvas.defaultUniformLocation.offset, prop.renderInfo.screenPos.x, prop.renderInfo.screenPos.y); //Pass in the Prop's location relative to the bottom left of the canvas
+                    let program = (prop.renderInfo.program) ? prop.renderInfo.program : this.canvas.defaultProgram;
+                    let vao = (prop.renderInfo.vao) ? prop.renderInfo.vao : this.canvas.getVertexArray(prop.type);
+                    let meshLength = prop.renderInfo.meshLength;
+                    let texture = (prop.renderInfo.texture) ? prop.renderInfo.texture : this.canvas.defaultTexture;
+                    let screenPos = (prop.renderInfo.screenPos) ? prop.renderInfo.screenPos : rel;
+                    let rotation = (prop.renderInfo.rotation) ? prop.renderInfo.rotation : [Math.sin(prop.radians), Math.cos(prop.radians)];
+                    this.gl.useProgram(program); //Use Prop's preferred shader program or default shader program.
+                    this.gl.bindVertexArray(vao); //Use the Prop's chosen vertexArrayObject (expected to contain mesh info)
+                    let slot = this.canvas.loadTexture(texture); //Get texture slot from Canvas (Canvas will load texture if not already)
+                    this.gl.activeTexture(this.gl.TEXTURE0 + slot); //Activate the texture slot
+                    this.gl.uniform1i(this.canvas.defaultUniformLocation.texture, slot); //Pass in the current texture slot to WebGL
+                    this.gl.uniform2f(this.canvas.defaultUniformLocation.offset, screenPos.x, screenPos.y);
                     this.gl.uniform2f(this.canvas.defaultUniformLocation.scale, this.scale.x, this.scale.y); //Pass in the Camera's scale setting
-                    this.gl.uniform2fv(this.canvas.defaultUniformLocation.rotation, prop.renderInfo.rotation); //Pass in the Prop's rotation
+                    this.gl.uniform2fv(this.canvas.defaultUniformLocation.rotation, rotation); //Pass in the Prop's rotation
                     this.gl.uniform2f(this.canvas.defaultUniformLocation.resolution, this.dimensions.x, this.dimensions.y); //Pass in the Camera's output resolution
-                    this.gl.drawArrays(this.gl.TRIANGLES, 0, prop.renderInfo.meshLength / 2); //Call the BIG WebGL function to execute our shader program. Magic happens here!!
+                    this.gl.drawArrays(this.gl.TRIANGLES, 0, meshLength / 2); //Call the BIG WebGL function to execute our shader program. Magic happens here!!
                 }
                 rel.remove(); //Deallocate the Coord storing our Prop's canvas position.
             });
