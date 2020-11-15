@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "es2020"
+    },
+    "files": [
+        "assembly.ts",
+        "base.ts",
+        "stage.ts",
+        "prop.ts",
+        "camera.ts"
+    ]
+}

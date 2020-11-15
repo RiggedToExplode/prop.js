@@ -5,8 +5,9 @@ Prop.js is a lightweight framework to manage drawing on the canvas via the appli
 Prop.js is currently under a *major* overhaul. While the current version on the master branch is functional, I felt it was too slow and began to convert to using WebAssembly and WebGL where it seemed best. I also decided to move to using TypeScript. See the dev-glwasm branch for progress on the new changes, and what to expect once the overhaul is finished. Also keep in mind that much will change once the overhaul is complete, and the framework will function slightly differently than before.
 
 ## Why?
-Prop.js differs from other drawing/creation frameworks in two main ways: the analogy and the modularity. Where other frameworks provide integrated features such as a physics engine or sprite management, Prop.js provides these features as separate modules. The end user can then customize Prop.js to their specific needs, and reduce the overall size of their project. Prop.js is also named and based around the analogy of a stage for a movie or show: the "stage" contains and manages all of the "props"  that are currently in the play, while the "camera" moves separately and records the happenings of the stage. This analogy is evident in the following code:
+Prop.js differs from other drawing/creation frameworks in two main ways: the analogy and the modularity. Where other frameworks provide integrated features such as a physics engine or sprite management, Prop.js provides these features as separate modules. The end user can then customize Prop.js to their specific needs, and reduce the overall size of their project. Prop.js is also named and based around the analogy of a stage for a movie or show: the "stage" contains and manages all of the "props" that are currently in play, while the "camera" moves separately and records the happenings of the stage. This analogy is evident in the following code:
 ```javascript
+//NOTICE: This example is somewhat outdated for this 'dev-glwasm' branch of the framework, as the framework is currently undergoing a major revision that changes a few things.
 var stage = new $P.Stage(); //Create the stage we will be working with.
 var canvas = new $P.Canvas("canvas"); //Create a canvas object with the id of the canvas in the DOM.
 var cam = new $P.Camera(stage, canvas); //Create a camera that draws from Stage "stage" and draws onto Canvas "canvas".
@@ -27,10 +28,10 @@ window.setInterval(function () { //Use setInterval to tell Camera "cam" to draw.
 ```
 
 ## Getting Started
-Prop.js is meant to be used in a browser environment, but should function in any environment that uses the same Canvas API as standard browsers.
+Prop.js is meant to be used in a browser environment, with WebGL2.
 
 ### The Wiki
-Prop.js is documented using GitHub's wiki pages. [Go there](https://github.com/RiggedToExplode/prop.js/wiki) to find a list of reference pages for every class and module in the framework. Complex examples and a tutorial are coming soon.
+Prop.js is documented using GitHub's wiki pages (NOTE: This documentation is for the old version of the framework on the master branch). [Go there](https://github.com/RiggedToExplode/prop.js/wiki) to find a list of reference pages for every class and module in the framework. Complex examples and a tutorial are coming soon.
 
 ### The Base Framework
 The first step in any propject utilizing Prop.js is to download the base framework from this repository. The release versions of Prop.js are minified and commited to `prop.js` under the root directory. Download and include this file in your project (with the use of `<script>` tags, most likely), and you have all you need to get started with the base Prop.js framework!
@@ -39,7 +40,7 @@ The first step in any propject utilizing Prop.js is to download the base framewo
 Prop.js is at its strongest when enhanced with modules. The base framework is not meant to be updated, and any additional functionality is rather added in the form of modules under the `modules` directory. These modules are meant to extend upon the base framework by extending its classes. Modules are installed in much  the same way as the base framework: download the respective file and include it in your project. Just be sure to import it after the base `prop.js` file, and any other modules that it depends on. Module dependencies can be found on the [wiki](https://github.com/RiggedToExplode/prop.js/wiki) page for the module in question.
 
 ## Annotated Versions
-Changes are frequently commited to the `annotated` directory, in the form of indented and commented code. When enough progress has been made, any changes are minified and commited to the respective files in the root directory. Reading the annotated code can assist in understanding how the framework functions.
+Changes are frequently commited to the `src` directory, in the form of indented and commented TypeScript code. When enough progress has been made, any changes are minified and commited to the respective files in the root directory. Reading the annotated code can assist in understanding how the framework functions.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE.md file for details.

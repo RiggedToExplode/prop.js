@@ -5,11 +5,81 @@ FIRSTVERSION=es2020
 OPTIMIZATION=0
 FINAL=0
 TEST=0
+DECLARATION=0
 
-args=$(getopt Ttfv:O: $*)
+
+replaceline() {
+    printf "\r\033[K$@"
+}
+
+newline() {
+    printf "\n$@"
+}
+
+compile() {
+    path=$1
+    version=$2
+
+    shift; shift
+
+    tsc -t $version $@ $path
+
+    if [ $? -ne 0 ]; then
+        newline "tsc: Fatal error!\n"
+
+        exit $?
+    fi
+}
+
+compileVersions() {
+    for version in $VERSIONS; do
+        replaceline "Compiling file $2 ($3/$4) to ECMA version '$version' ($CURRVERSION/$VERSIONSLENGTH)..."
+        
+        CURRVERSION=$((CURRVERSION + 1))
+        
+        compile $1 $version --outDir versions/$version/$(dirname $2)
+
+        if [ $? -ne 0 ]; then
+            exit $?
+        fi
+    done
+
+    CURRVERSION=1
+}
+
+compileWASM() {
+    path=$1
+    relativePath=$2
+    dir=$3
+
+    shift; shift; shift
+
+    emcc -O$OPTIMIZATION -o $dir/$(echo $relativePath | sed 's/\..*/\.wasm/') $path $@
+
+    if [ $? -ne 0 ]; then
+        newline "emcc: Fatal error!\n"
+
+        exit $?
+    fi
+}
+
+generateDeclarations() {
+    currDeclaration=1
+
+    tsc -d --emitDeclarationOnly -t $FIRSTVERSION --outDir src/declarations -p src
+
+    if [ $? -ne 0 ]; then
+        newline "tsc: Fatal error while generating declarations!\n"
+
+        exit $?
+    fi
+}
+
+
+args=$(getopt dDTtfv:O: $*)
 
 if [ "$?" -ne 0 ] || [ $# -eq 0 ]; then
-    echo "Usage: $(basename $0) [-v versions] [-O optimization] [-ftT] file1 [file2 ...]"
+    echo "Usage: $(basename $0) [-v versions] [-O optimization] [-ftTdD] file1 [file2 ...]"
     exit 2
 fi
 
@@ -41,98 +111,182 @@ while :; do
             OPTIMIZATION=$2 
             shift; shift
             ;;
+        -d)
+            DECLARATION=1
+            shift
+            ;;
+        -D)
+            DECLARATION=2
+            shift
+            ;;
         --)
             shift; break
             ;;
     esac
 done
 
-printf "ECMA Targets: $VERSIONS\n"
-printf "Primary Target: $FIRSTVERSION\n"
-if [ $OPTIMIZATION -ne 0 ]; then
-    printf "WASM Optimization: O$OPTIMIZATION\n"
-fi
-if [ $FINAL -ne 0 ]; then
-    printf "Set to copy a final 'de-facto' version.\n"
-fi
-if [ $TEST -eq 1 ]; then
-    printf "Set to copy a test version to test directory.\n"
-fi
-if [ $TEST -eq 2 ]; then
-    printf "Set to compile only to test directory.\n"
-fi
-printf \n
-
-FILESLENGTH=$#
 VERSIONSLENGTH=$(echo $VERSIONS | wc -w)
 CURRVERSION=1
-CURRFILE=1
 
-for version in $VERSIONS; do
-    mkdir -p versions/$version/modules
-done
+
+printf "ECMA Targets: $VERSIONS"
+newline "Primary Target: $FIRSTVERSION"
+
+if [ $DECLARATION -eq 1 ]; then
+    if [ $DECLARATION -eq 2 ]; then
+        newline "Set to only generate TypeScript declaration files."
+    else
+        newline "Set to generate TypeScript declaration files."
+    fi
+fi
+
+if [ $OPTIMIZATION -ne 0 ]; then
+    newline "WASM Optimization: O$OPTIMIZATION"
+fi
+
+if [ $FINAL -ne 0 ]; then
+    newline "Set to copy a final 'de-facto' version."
+fi
+
+if [ $TEST -eq 1 ]; then
+    if [ $TEST -eq 2 ]; then
+        newline "Set to compile only to test directory."
+    else
+        newline "Set to copy a test version to test directory."
+    fi
+fi
+
+newline "\n"
+
+
+if [ $DECLARATION -eq 2 ]; then
+    replaceline "Generating declaration files for core framework..."
+
+    generateDeclarations
+
+    printf " Done!\n"
+
+    exit $?
+fi
+
+if [ $DECLARATION -eq 1 ]; then
+    newline "Generating declaration files for core framework..."
+    generateDeclarations
+fi
+
+
+if [ $TEST -ne 2 ]; then
+    for version in $VERSIONS; do
+        mkdir -p versions/$version/modules
+    done
+fi
+
+
+currFile=1
+filesLength=$#
 
 for path in $@; do
-    RELATIVEPATH=$(echo $path | sed 's/.*src\///')
+    relativePath=$(echo $path | sed 's/.*src\///')
+
     case $(echo $path | awk -F . '{print $NF}') in
         ts) 
             if [ $TEST -eq 2 ]; then
-                printf "\r\033[KCompiling file $RELATIVEPATH ($CURRFILE/$FILESLENGTH) to ECMA version '$version' for test directory..."
-                tsc -t $FIRSTVERSION --outDir test/ $path
+                replaceline "Compiling file $relativepath ($currFile/$filesLength) to ECMA version '$FIRSTVERSION' for test directory..."
+                
+                compile $path $FIRSTVERSION --outDir test/$(dirname $relativePath)
+                
                 if [ $? -ne 0 ]; then
-                    printf "\n $(basename $0): Fatal error!\n"
                     exit $?
                 fi
             else
-                for version in $VERSIONS; do
-                    printf "\r\033[KCompiling file $RELATIVEPATH ($CURRFILE/$FILESLENGTH) to ECMA version '$version' ($CURRVERSION/$VERSIONSLENGTH)..."
-                    CURRVERSION=$((CURRVERSION + 1))
-                    tsc -t $version --outDir versions/$version/ $path
+                compileVersions $path $relativePath $currFile $filesLength
+
+                if [ $? -ne 0 ]; then
+                    exit $?
+                fi
+            fi
+            ;;
+
+        c)  
+            replaceline "Compiling file $relativePath ($currFile/$filesLength) to WebAssembly with optimization level O$OPTIMIZATION..."
+            
+            if [ $TEST -eq 2 ]; then
+                mkdir -p test/$(dirname $relativePath)
+
+                compileWASM $path $relativePath test --no-entry
+
+                if [ $? -ne 0 ]; then
+                    exit $?
+                fi
+            else
+                mkdir -p $(dirname $relativePath)
+
+                compileWASM $path $relativePath . --no-entry
+
+                if [ $? -ne 0 ]; then
+                    exit $?
+                fi
+            fi
+            ;;
+
+        *)  
+            if [ "$(basename $relativePath)" = "core" ]; then
+                if [ $TEST -eq 2 ]; then
+                    replaceline "Compiling core framework files ($currFile/$filesLength) to ECMA version $FIRSTVERSION for test directory..."
+                    
+                    compile "" $FIRSTVERSION --outFile test/prop.js -p src
+                    
                     if [ $? -ne 0 ]; then
-                        printf "\n $(basename $0): Fatal error!\n"
+                        printf "\n Fatal error while compiling core!\n"
+                        
                         exit $?
                     fi
-                done
-                CURRVERSION=1
-            fi
-            ;;
-        c)  
-            printf "\r\033[KCompiling file $RELATIVEPATH ($CURRFILE/$FILESLENGTH) to WebAssembly with optimization level O$OPTIMIZATION..."
-            if [ $TEST -eq 2 ]; then
-                mkdir -p test/$(dirname $RELATIVEPATH)
-                emcc -O$OPTIMIZATION --no-entry $path -o test/$(echo $RELATIVEPATH | sed 's/\..*/\.wasm/')
-                if [ $? -ne 0 ]; then
-                    printf "\n $(basename $0): Fatal error!\n"
-                    exit $?
+                else
+                    for version in $VERSIONS; do
+                        replaceline "Compiling core framework files ($currFile/$filesLength) to ECMA version $version ($CURRVERSION/$VERSIONSLENGTH)..."
+                        
+                        CURRVERSION=$((CURRVERSION + 1))
+                        
+                        compile "" $version --outFile versions/$version/prop.js -p src
+                        
+                        if [ $? -ne 0 ]; then
+                            printf "\n Fatal error while compiling core!\n"
+
+                            exit $?
+                        fi
+                    done
+
+                    CURRVERSION=1
                 fi
             else
-                mkdir -p $(dirname $RELATIVEPATH)
-                emcc -O$OPTIMIZATION --no-entry $path -o $(echo $RELATIVEPATH | sed 's/\..*/\.wasm/')
-                if [ $? -ne 0 ]; then
-                    printf "\n $(basename $0): Fatal error!\n"
-                    exit $?
-                fi
+                replaceline "Skipping unrecognized file $relativePath ($currFile/$filesLength)..."
+
+                sleep 3
             fi
             ;;
-        ?)  
-            printf "\r\033[KSkipping unrecognized file $RELATIVEPATH ($CURRFILE/$FILESLENGTH)..."
-            sleep 5
-            ;;
     esac
-    CURRFILE=$((CURRFILE + 1))
+
+    currFile=$((currFile + 1))
 done
 
-if [ $TEST -eq 1 ]; then
-    printf "\nCopying files from versions/$FIRSTVERSION to test directory..."
-    cp -rf versions/$FIRSTVERSION/modules test/
-    cp -f versions/$FIRSTVERSION/prop.js test/prop.js
-    cp -f prop.wasm test/prop.wasm
+if [ $TEST -ne 0 ]; then
+    newline "Attempting to compile test/main.ts..."
+
+    tsc -t $FIRSTVERSION --outFile test/main.js test/main.ts
+
+    if [ $TEST -eq 1 ]; then
+        newline "Copying files from versions/$FIRSTVERSION to test directory..."
+        cp -rf versions/$FIRSTVERSION/modules test/
+        cp -f versions/$FIRSTVERSION/prop.js test/prop.js
+        cp -f prop.wasm test/prop.wasm
+    fi
 fi
 
 if [ $FINAL -ne 0 ]; then
-    printf "\nCopying files from versions/$FIRSTVERSION to root directory for a 'de-facto' version..."
+    newline "Copying files from versions/$FIRSTVERSION to root directory for a 'de-facto' version..."
     cp -rf versions/$FIRSTVERSION/modules ./
     cp -f versions/$FIRSTVERSION/prop.js prop.js
 fi
+    
 
 printf " Done!\n"
