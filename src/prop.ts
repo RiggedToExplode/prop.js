@@ -12,12 +12,12 @@
  */
 
 interface RenderInfo {
-    screenPos?: $P.Pair,
-    rotation?: number[],
+    program?: WebGLProgram,
     vao?: string,
     meshLength?: number,
-    program?: WebGLProgram,
-    texture?: WebGLTexture
+    texture?: WebGLTexture,
+    screenPos?: $P.Pair,
+    rotation?: number[]
 }
 
 namespace $P {
@@ -82,7 +82,7 @@ namespace $P {
 
 
         // PROPERTIES
-        private _renderInfo: RenderInfo = {}; //The rendering information for this Prop, such as its mesh and texture coordinates.
+        protected _renderInfo: RenderInfo = {}; //The rendering information for this Prop, such as its mesh and texture coordinates.
 
         protected _type: string = "baseProp"; //The type of this class.
 
@@ -290,7 +290,7 @@ namespace $P {
          * If the draw hook returns false, the Camera leaves all the drawing up to the Prop and skips over it entirely.
          */
         draw(rel: Coord, canvas: Canvas, type: string) {
-            this._renderInfo.vao = Prop.defaultMeshes.name; //Set the vao this prop renders with to the default "prop" VAO
+            this._renderInfo.vao = canvas.getVertexArray(Prop.defaultMeshes.name); //Set the vao this prop renders with to the default "prop" VAO
             this._renderInfo.meshLength = Prop.defaultMeshes.triangles.length; //Set the meshLength to the length of the default "prop" mesh
             this._renderInfo.screenPos.set(rel.x, rel.y); //Set the desired screenPos to the position the Camera found for us
             this._renderInfo.rotation = [Math.sin(this.radians), Math.cos(this.radians)]; //Set the rotation coordinates based on the Prop's current rotation.
