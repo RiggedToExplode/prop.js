@@ -79,7 +79,7 @@ declare namespace $P {
         assignVertexArray(str: string, vertexArray?: WebGLVertexArrayObject): void;
         getVertexArray(name: string): any;
         vertexArrayWrite(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, data: Float32Array, mode?: GLint, ptr?: VertexPointer): void;
-        preloadDefaults(input: MeshInfo | MeshInfo[]): void;
+        loadDefaultMeshes(input: MeshInfo | MeshInfo[]): void;
         createSolidTex(color: number[]): WebGLTexture;
         createImageTex(src: string, texParam?: TexParameters, imageProps?: ImageProperties): WebGLTexture;
         loadTexture(texture: WebGLTexture): number;

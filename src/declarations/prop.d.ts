@@ -1,10 +1,10 @@
 interface RenderInfo {
-    screenPos?: $P.Pair;
-    rotation?: number[];
+    program?: WebGLProgram;
     vao?: string;
     meshLength?: number;
-    program?: WebGLProgram;
     texture?: WebGLTexture;
+    screenPos?: $P.Pair;
+    rotation?: number[];
 }
 declare namespace $P {
     class Prop extends Base {
@@ -15,7 +15,7 @@ declare namespace $P {
         static toDegrees(radians: number): number;
         static toRadians(degrees: number): number;
         static perSecond(val: number): number;
-        private _renderInfo;
+        protected _renderInfo: RenderInfo;
         protected _type: string;
         stage: Stage;
         constructor(pos?: Coord, radians?: number, bounds?: Coord[]);
