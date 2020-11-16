@@ -611,7 +611,7 @@ namespace $P {
             this.stage.props.forEach(prop => { //For each prop
                 let rel = Coord.subtract(Coord.multiply(prop.pos.copy(), this.scale), this.stagePos); //Calculate Prop's position on the canvas
                 
-                if (prop.draw(rel, this.canvas, this._type)) { //Call Prop's draw method, continue if returns true
+                if (prop.draw(rel, this)) { //Call Prop's draw method, continue if returns true
                     let program = (prop.renderInfo.program) ? prop.renderInfo.program : this.canvas.defaultProgram;
                     let vao = (prop.renderInfo.vao) ? prop.renderInfo.vao : this.canvas.getVertexArray(prop.type);
                     let meshLength = prop.renderInfo.meshLength;
