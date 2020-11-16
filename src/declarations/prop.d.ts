@@ -1,6 +1,6 @@
 interface RenderInfo {
     program?: WebGLProgram;
-    vao?: string;
+    vao?: WebGLVertexArrayObject;
     meshLength?: number;
     texture?: WebGLTexture;
     screenPos?: $P.Pair;

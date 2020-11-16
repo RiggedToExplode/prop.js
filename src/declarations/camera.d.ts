@@ -75,14 +75,14 @@ declare namespace $P {
         set height(height: number);
         compileProgram(vertexSource: string, fragmentSource: string): WebGLProgram;
         assignDataStore(str: string, dataStore?: DataStore): DataStore;
-        getDataStore(name: string): any;
+        getDataStore(name: string): DataStore;
         vertexArrayBind(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, ptr?: VertexPointer): void;
         bufferWrite(buffer: WebGLBuffer, data: Float32Array, mode?: GLint): void;
         loadDefaultMeshes(input: MeshInfo | MeshInfo[]): void;
         createSolidTex(color: number[]): WebGLTexture;
         createImageTex(src: string, texParam?: TexParameters, imageProps?: ImageProperties): WebGLTexture;
         loadTexture(texture: WebGLTexture): number;
-        getSlot(texture: WebGLTexture): number;
+        getTextureSlot(texture: WebGLTexture): number;
         freeTexture(texture: WebGLTexture): number;
     }
     class Camera extends Base {
