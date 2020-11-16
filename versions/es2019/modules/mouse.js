@@ -16,7 +16,7 @@ var $P;
         },
         relY: function (cam) {
             let canvasBounds = cam.canvas.el.getBoundingClientRect();
-            return cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y;
+            return -(cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y);
         },
         init: function () {
             this.pos = new $P.Coord(0, 0);
