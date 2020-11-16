@@ -31,9 +31,9 @@ interface UniformLocations {
     rotation: WebGLUniformLocation;
     texture: WebGLUniformLocation;
 }
-interface Buffers {
-    position: WebGLBuffer;
-    texCoord: WebGLBuffer;
+interface DataStore {
+    vao: WebGLVertexArrayObject;
+    buffers: WebGLBuffer[];
 }
 interface MeshInfo {
     name: string;
@@ -57,8 +57,7 @@ declare namespace $P {
         private _defaultTexture;
         private _defaultAttribLocation;
         private _defaultUniformLocation;
-        private _defaultBuffer;
-        vertexArrays: Map<string, WebGLVertexArrayObject>;
+        private _dataStores;
         constructor(_id: string, width?: number, height?: number);
         get id(): string;
         get width(): number;
@@ -69,16 +68,16 @@ declare namespace $P {
         get defaultProgram(): WebGLProgram;
         get defaultTexture(): WebGLTexture;
         get defaultAttribLocation(): AttribLocations;
-        get defaultBuffer(): Buffers;
         get defaultUniformLocation(): UniformLocations;
         get loadedTextures(): Map<WebGLTexture, number>;
         set id(id: string);
         set width(width: number);
         set height(height: number);
         compileProgram(vertexSource: string, fragmentSource: string): WebGLProgram;
-        assignVertexArray(str: string, vertexArray?: WebGLVertexArrayObject): void;
-        getVertexArray(name: string): any;
-        vertexArrayWrite(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, data: Float32Array, mode?: GLint, ptr?: VertexPointer): void;
+        assignDataStore(str: string, dataStore?: DataStore): DataStore;
+        getDataStore(name: string): any;
+        vertexArrayBind(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, ptr?: VertexPointer): void;
+        bufferWrite(buffer: WebGLBuffer, data: Float32Array, mode?: GLint): void;
         loadDefaultMeshes(input: MeshInfo | MeshInfo[]): void;
         createSolidTex(color: number[]): WebGLTexture;
         createImageTex(src: string, texParam?: TexParameters, imageProps?: ImageProperties): WebGLTexture;
