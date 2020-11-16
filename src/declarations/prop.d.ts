@@ -39,6 +39,6 @@ declare namespace $P {
         beforeUpdate(dt: number): void;
         update(dt: number): void;
         afterUpdate(dt: number): void;
-        draw(rel: Coord, canvas: Canvas, type: string): boolean;
+        draw(rel: Coord, camera: Camera): boolean;
     }
 }
