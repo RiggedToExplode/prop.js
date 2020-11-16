@@ -236,7 +236,7 @@ namespace $P {
          * and exits if an error occurs. It then attempts to attach the two compiled shaders to a program and link that program. If anything fails
          * there, the method exits.
          */
-        compileProgram(vertexSource: string, fragmentSource: string) {
+        compileProgram(vertexSource: string, fragmentSource: string): WebGLProgram {
             let vertex = this._gl.createShader(this._gl.VERTEX_SHADER); //Create the vertex shader
 
             this._gl.shaderSource(vertex, vertexSource); //Set the source code for the vertex shader
@@ -285,7 +285,7 @@ namespace $P {
          * _dataStores map. If no DataStore is provided, the method will create a new one and assign it
          * to the provided name.
          */
-        assignDataStore(str: string, dataStore: DataStore = undefined) {
+        assignDataStore(str: string, dataStore: DataStore = undefined): DataStore {
             let out = dataStore;
 
             if (!out) {
@@ -304,8 +304,8 @@ namespace $P {
          * The getDataStore method returns the DataStore under the provided name in the _dataStores
          * map.
          */
-        getDataStore(name: string) {
-            return this._dataStores[name];
+        getDataStore(name: string): DataStore {
+            return this._dataStores.get(name);
         }
 
         /* VERTEXARRAYBIND METHOD
@@ -458,7 +458,7 @@ namespace $P {
          */
         loadTexture(texture: WebGLTexture): number {
             if (this._loadedTextures.has(texture)) { //If the texture is already loaded
-                return this.getSlot(texture); //Return the slot
+                return this.getTextureSlot(texture); //Return the slot
             }
 
             let slot: number; //Declare slot variable
@@ -491,7 +491,7 @@ namespace $P {
          * 
          * The getSlot method returns the texture slot that the specified texture is loaded at, according to the _loadedTextures map.
          */
-        getSlot(texture: WebGLTexture): number {
+        getTextureSlot(texture: WebGLTexture): number {
             return this._loadedTextures.get(texture);
         }
 
@@ -504,7 +504,7 @@ namespace $P {
          * texture.
          */
         freeTexture(texture: WebGLTexture): number {
-            let slot = this.getSlot(texture); //Get slot of specified texture.
+            let slot = this.getTextureSlot(texture); //Get slot of specified texture.
 
             this._freeSlots.push(slot); //Add the slot to array of free slots.
             
