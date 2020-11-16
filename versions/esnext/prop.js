@@ -959,10 +959,10 @@ var $P;
          */
         rotate(radians) {
             this.radians += radians % 2 * Math.PI; //Rotate the prop by the amount, use modulo operator to ignore all multiples of 2PI (a complete rotation).
-            if (this.radians <= 0) { //If resultant rotation is less than zero
+            if (this.radians <= -Math.PI) { //If resultant rotation is less than -PI
                 this.radians += 2 * Math.PI; //Add 2PI
             }
-            else if (this.radians >= Math.PI) { //Otherwise, if resultant rotation is more than 2PI
+            else if (this.radians >= Math.PI) { //Otherwise, if resultant rotation is more than PI
                 this.radians -= 2 * Math.PI; //Subtract 2PI.
             }
             return this.radians; //Return the new rotation.
