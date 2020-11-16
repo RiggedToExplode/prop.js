@@ -6,32 +6,32 @@ namespace $P {
         middle: boolean,
         right: boolean,
         pos: Coord,
-        relPos: Function,
-        relX: Function,
-        relY: Function,
+        relPos(cam: Camera): Coord,
+        relX(cam: Camera): number,
+        relY(cam: Camera): number,
         init: Function
     } = { //Declare the mouse object
         left: false, //State of left mouse button
         middle: false, //State of middle mouse button
         right: false, //State of right mouse button
         pos: undefined, //Mouse position Coord
-        relPos: function(cam: Camera): $P.Coord { //Inefficient(?) method to get position of mouse in stage relative to cam (Camera)
+        relPos: function(cam: Camera): Coord { //Inefficient(?) method to get position of mouse in stage relative to cam (Camera)
             let canvasBounds = cam.canvas.el.getBoundingClientRect();
             
-            return new $P.Coord(cam.scale.x * (this.pos.x - canvasBounds.left - cam.canvasPos.x) + cam.stagePos.x, cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y);
+            return new Coord(cam.scale.x * (this.pos.x - canvasBounds.left - cam.canvasPos.x) + cam.stagePos.x, cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y);
         },
-        relX: function(cam): number {
+        relX: function(cam: Camera): number {
             let canvasBounds = cam.canvas.el.getBoundingClientRect();
 
             return cam.scale.x * (this.pos.x - canvasBounds.left - cam.canvasPos.x) + cam.stagePos.x;
         },
-        relY: function(cam): number {
+        relY: function(cam: Camera): number {
             let canvasBounds = cam.canvas.el.getBoundingClientRect();
 
-            return cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y;
+            return -(cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y);
         },
         init: function() {
-            this.pos = new $P.Coord(0, 0);
+            this.pos = new Coord(0, 0);
 
             window.addEventListener("mousedown",
                 function(e) { //Change values of left, middle, and right when mouse button is pressed
