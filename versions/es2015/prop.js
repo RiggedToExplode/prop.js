@@ -1055,8 +1055,8 @@ var $P;
          *
          * If the draw hook returns false, the Camera leaves all the drawing up to the Prop and skips over it entirely.
          */
-        draw(rel, canvas, type) {
-            this._renderInfo.vao = canvas.getVertexArray(Prop.defaultMeshes.name); //Set the vao this prop renders with to the default "prop" VAO
+        draw(rel, camera) {
+            this._renderInfo.vao = camera.canvas.getVertexArray(Prop.defaultMeshes.name); //Set the vao this prop renders with to the default "prop" VAO
             this._renderInfo.meshLength = Prop.defaultMeshes.triangles.length; //Set the meshLength to the length of the default "prop" mesh
             this._renderInfo.screenPos.set(rel.x, rel.y); //Set the desired screenPos to the position the Camera found for us
             this._renderInfo.rotation = [Math.sin(this.radians), Math.cos(this.radians)]; //Set the rotation coordinates based on the Prop's current rotation.
@@ -1521,7 +1521,7 @@ var $P;
             this.gl.clear(this.gl.COLOR_BUFFER_BIT); //Clear the viewport
             this.stage.props.forEach(prop => {
                 let rel = $P.Coord.subtract($P.Coord.multiply(prop.pos.copy(), this.scale), this.stagePos); //Calculate Prop's position on the canvas
-                if (prop.draw(rel, this.canvas, this._type)) { //Call Prop's draw method, continue if returns true
+                if (prop.draw(rel, this)) { //Call Prop's draw method, continue if returns true
                     let program = (prop.renderInfo.program) ? prop.renderInfo.program : this.canvas.defaultProgram;
                     let vao = (prop.renderInfo.vao) ? prop.renderInfo.vao : this.canvas.getVertexArray(prop.type);
                     let meshLength = prop.renderInfo.meshLength;
