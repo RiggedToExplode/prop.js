@@ -5,8 +5,9 @@ declare namespace $P {
         middle: boolean;
         right: boolean;
         pos: Coord;
-        relPos: (cam: any) => $P.Coord;
-        relX: (cam: any) => number;
-        relY: (cam: any) => number;
+        relPos: Function;
+        relX: Function;
+        relY: Function;
+        init: Function;
     };
 }
