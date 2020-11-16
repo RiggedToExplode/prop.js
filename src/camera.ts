@@ -52,9 +52,9 @@ interface UniformLocations {
     texture: WebGLUniformLocation
 }
 
-interface Buffers {
-    position: WebGLBuffer,
-    texCoord: WebGLBuffer
+interface DataStore {
+    vao: WebGLVertexArrayObject,
+    buffers: WebGLBuffer[]
 }
 
 interface MeshInfo {
@@ -126,9 +126,8 @@ namespace $P {
         private _defaultTexture: WebGLTexture; //The default texture to use when drawing.
         private _defaultAttribLocation: AttribLocations = {position: undefined, texCoord: undefined}; //Stores the attribute locations for the Prop.js default WebGL inputs.
         private _defaultUniformLocation: UniformLocations = {resolution: undefined, offset: undefined, scale: undefined, rotation: undefined, texture: undefined}; //Stores the uniform locations for the Prop.js default WebGL uniforms.
-        private _defaultBuffer: Buffers = {position: undefined, texCoord: undefined}; //Stores the Prop.js default WebGL buffers.
 
-        public vertexArrays: Map<string, WebGLVertexArrayObject>; //A Map associating name strings with vertex array objects. (Useful for storing a class's drawing and mesh info for all of its children to use.)
+        private _dataStores: Map<string, DataStore>; //A Map associating name strings with vertex array objects. (Useful for storing a class's drawing and mesh info for all of its children to use.)
 
 
         /* CONSTRUCTOR
@@ -154,11 +153,8 @@ namespace $P {
             this._defaultUniformLocation.scale = this._gl.getUniformLocation(this._defaultProgram, "u_scale"); //Store location of scale uniform.
             this._defaultUniformLocation.rotation = this._gl.getUniformLocation(this._defaultProgram, "u_rotation"); //Store location of rotation uniform.
             this._defaultUniformLocation.texture = this._gl.getUniformLocation(this._defaultProgram, "u_texture"); //Store location of texture uniform.
-
-            this._defaultBuffer.position = this._gl.createBuffer(); //Create the position buffer.
-            this._defaultBuffer.texCoord = this._gl.createBuffer(); //Create the texCoord buffer.
             
-            this.vertexArrays = new Map(); //Create the vertexArrays map.
+            this._dataStores = new Map(); //Create the vertexArrays map.
 
             this._loadedTextures = new Map(); //Create the _loadedTextures map.
 
@@ -202,10 +198,6 @@ namespace $P {
 
         get defaultAttribLocation(): AttribLocations { //Get the object containing the locations for the framework-default attributes. Unsettable.
             return this._defaultAttribLocation;
-        }
-
-        get defaultBuffer(): Buffers { //Get the object containing the framework-default buffers. Unsettable.
-            return this._defaultBuffer;
         }
 
         get defaultUniformLocation(): UniformLocations { //Get the object containing the locations for the framework-default uniforms. Unsettable.
@@ -285,46 +277,65 @@ namespace $P {
             return program; //If nothing failed, return the completed shader program.
         }
 
-        /* ASSIGNVERTEXARRAY METHOD
+        /* ASSIGNDATASTORE METHOD
          *
-         * Parameters: name of vertex array
+         * Parameters: string at which to store DataStore
          * 
-         * The assignVertexArray method will assign the provided vertexArrayObject to the provided name in the 
-         * vertexArrays map. If no vertexArrayObject is provided, the method will create a new one and assign it
+         * The assignDataStore method will assign the provided DataStore to the provided name in the 
+         * _dataStores map. If no DataStore is provided, the method will create a new one and assign it
          * to the provided name.
          */
-        assignVertexArray(str: string, vertexArray: WebGLVertexArrayObject = undefined) {
-            this.vertexArrays.set(str, (vertexArray) ? vertexArray : this._gl.createVertexArray());
+        assignDataStore(str: string, dataStore: DataStore = undefined) {
+            let out = dataStore;
+
+            if (!out) {
+                out = {vao: this._gl.createVertexArray(), buffers: []}
+            }
+
+            this._dataStores.set(str, out);
+
+            return out;
         }
         
-        /* GETVERTEXARRAY METHOD
+        /* GETDATASTORE METHOD
          *
-         * Parameters: name of vertex array
+         * Parameters: name of DataStore to get
          * 
-         * The getVertexArray method returns the vertexArrayObject under the provided name in the vertexArrays
+         * The getDataStore method returns the DataStore under the provided name in the _dataStores
          * map.
          */
-        getVertexArray(name: string) {
-            return this.vertexArrays[name];
+        getDataStore(name: string) {
+            return this._dataStores[name];
         }
 
-        /* VERTEXARRAYWRITE METHOD
+        /* VERTEXARRAYBIND METHOD
          * 
-         * Parameters: vertexArrayObject to save reference, buffer to store data in, location to write to, data to write, writing mode, pointer info
+         * Parameters: vertexArray to bind buffer in, buffer to bind, location to bind to, pointer info
          * 
-         * The vertexArrayWrite method will send the provided data to WebGL via the provided buffer and to the provided location,
-         * while storing the Javascript-side reference in the provided vertexArrayObject. It will also set the drawing mode and pointer values if 
-         * specified. 
+         * The vertexArrayBind method will bind the provided buffer to the specified vertexArray at the specified
+         * location.
          */
-        vertexArrayWrite(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, data: Float32Array, mode: GLint = this._gl.STATIC_DRAW, ptr: VertexPointer = { size: 2, type: this._gl.FLOAT, normalize: false, stride: 0, offset: 0 }) {
+        vertexArrayBind(vao: WebGLVertexArrayObject, buffer: WebGLBuffer, location: GLint, ptr: VertexPointer = { size: 2, type: this._gl.FLOAT, normalize: false, stride: 0, offset: 0 }) {
             this._gl.bindVertexArray(vao); //Bind the specified vertexArrayObject
             this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer); //Bind the specified buffer
-
-            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, mode); //Write the provided data to the buffer.
 
             this._gl.enableVertexAttribArray(location); //Enable the vertex array.
 
             this._gl.vertexAttribPointer(location, ptr.size, ptr.type, ptr.normalize, ptr.stride, ptr.offset); //Set all the pointer info.
+        }
+
+        /* BUFFERWRITE METHOD
+         *
+         * Parameters: buffer to write to, data to write, writing mode
+         * 
+         * The bufferWrite method will write the specified data to the specified buffer, using the specified
+         * GL mode.
+         */
+
+        bufferWrite(buffer: WebGLBuffer, data: Float32Array, mode: GLint = this._gl.STATIC_DRAW) {
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, buffer);
+
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, mode);
         }
 
         /* PRELOADDEFAULTS METHOD
@@ -339,28 +350,36 @@ namespace $P {
         loadDefaultMeshes(input: MeshInfo | MeshInfo[]) {
             if (Array.isArray(input)) { //If input is array
                 input.forEach(meshes => { //For each object in array
-                    this.assignVertexArray(meshes.name); //Create and assign a new vertexArrayObject with the name of this object
+                    let dataStore = this.assignDataStore(meshes.name); //Create and assign a new dataStore with the name of this object
 
-                    this.vertexArrayWrite(this.getVertexArray(meshes.name), //Write the position data using the defaults for position
-                            this.defaultBuffer.position,
-                            this.defaultAttribLocation.position, 
-                            meshes.triangles);
-                    this.vertexArrayWrite(this.getVertexArray(meshes.name), //Write the texture coordinate data using the defaults for texture coordinates
-                            this.defaultBuffer.texCoord,
-                            this.defaultAttribLocation.texCoord,
-                            meshes.texTriangles);
+                    dataStore.buffers[0] = this._gl.createBuffer(); //Create the two buffers we will use
+                    dataStore.buffers[1] = this._gl.createBuffer();
+
+                    this.vertexArrayBind(dataStore.vao, //Bind the position buffer to the vertex array object in the DataStore
+                            dataStore.buffers[0],
+                            this.defaultAttribLocation.position);
+                    this.vertexArrayBind(dataStore.vao, //Bind the texCoord buffer to the vertex array object in the DataStore
+                            dataStore.buffers[1],
+                            this.defaultAttribLocation.texCoord);
+                    
+                    this.bufferWrite(dataStore.buffers[0], meshes.triangles); //Write the triangles mesh to the position buffer.
+                    this.bufferWrite(dataStore.buffers[1], meshes.texTriangles); //Write the texTriangles mesh to the texCoord buffer.
                 });
             } else { //If input is single object
-                this.assignVertexArray(input.name); //Do same as above, but only once.
+                let dataStore = this.assignDataStore(input.name); //Create and assign a new dataStore with the name of this object
 
-                this.vertexArrayWrite(this.getVertexArray(input.name),
-                        this.defaultBuffer.position,
-                        this.defaultAttribLocation.position, 
-                        input.triangles);
-                this.vertexArrayWrite(this.getVertexArray(input.name),
-                        this.defaultBuffer.texCoord,
-                        this.defaultAttribLocation.texCoord,
-                        input.texTriangles);
+                dataStore.buffers[0] = this._gl.createBuffer();
+                dataStore.buffers[1] = this._gl.createBuffer();
+
+                this.vertexArrayBind(dataStore.vao, //Write the position data using the defaults for position
+                        dataStore.buffers[0],
+                        this.defaultAttribLocation.position);
+                this.vertexArrayBind(dataStore.vao, //Write the texture coordinate data using the defaults for texture coordinates
+                        dataStore.buffers[1],
+                        this.defaultAttribLocation.texCoord);
+                
+                this.bufferWrite(dataStore.buffers[0], input.triangles); //Write the triangles mesh to the position buffer.
+                this.bufferWrite(dataStore.buffers[1], input.texTriangles); //Write the texTriangles mesh to the texCoord buffer.
             }
         }
 
@@ -613,7 +632,7 @@ namespace $P {
                 
                 if (prop.draw(rel, this)) { //Call Prop's draw method, continue if returns true
                     let program = (prop.renderInfo.program) ? prop.renderInfo.program : this.canvas.defaultProgram;
-                    let vao = (prop.renderInfo.vao) ? prop.renderInfo.vao : this.canvas.getVertexArray(prop.type);
+                    let vao = (prop.renderInfo.vao) ? prop.renderInfo.vao : this.canvas.getDataStore(prop.type).vao;
                     let meshLength = prop.renderInfo.meshLength;
                     let texture = (prop.renderInfo.texture) ? prop.renderInfo.texture : this.canvas.defaultTexture;
                     let screenPos = (prop.renderInfo.screenPos) ? prop.renderInfo.screenPos : rel;
