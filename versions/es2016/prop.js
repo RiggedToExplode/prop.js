@@ -1236,7 +1236,7 @@ var $P;
          * map.
          */
         getDataStore(name) {
-            return this._dataStores[name];
+            return this._dataStores.get(name);
         }
         /* VERTEXARRAYBIND METHOD
          *
@@ -1351,7 +1351,7 @@ var $P;
          */
         loadTexture(texture) {
             if (this._loadedTextures.has(texture)) { //If the texture is already loaded
-                return this.getSlot(texture); //Return the slot
+                return this.getTextureSlot(texture); //Return the slot
             }
             let slot; //Declare slot variable
             if (this._freeSlots[0] !== undefined) { //If freed slots exist
@@ -1378,7 +1378,7 @@ var $P;
          *
          * The getSlot method returns the texture slot that the specified texture is loaded at, according to the _loadedTextures map.
          */
-        getSlot(texture) {
+        getTextureSlot(texture) {
             return this._loadedTextures.get(texture);
         }
         /* FREETEXTURE METHOD
@@ -1390,7 +1390,7 @@ var $P;
          * texture.
          */
         freeTexture(texture) {
-            let slot = this.getSlot(texture); //Get slot of specified texture.
+            let slot = this.getTextureSlot(texture); //Get slot of specified texture.
             this._freeSlots.push(slot); //Add the slot to array of free slots.
             return slot; //Return the freed slot.
         }
