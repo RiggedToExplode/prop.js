@@ -5,7 +5,7 @@ declare namespace $P {
         middle: boolean;
         right: boolean;
         pos: Coord;
-        relPos(cam: Camera): Coord;
+        relPos(cam: Camera): Pair;
         relX(cam: Camera): number;
         relY(cam: Camera): number;
         init: Function;

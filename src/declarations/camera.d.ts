@@ -103,8 +103,6 @@ declare namespace $P {
         set width(width: number);
         set height(height: number);
         set back(arr: number[]);
-        center(pos: Pair | number[]): void;
-        centerEx(x: number, y: number): void;
         resize(dimensions: Pair | number[]): void;
         draw(): void;
     }
