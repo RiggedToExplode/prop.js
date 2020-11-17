@@ -1401,10 +1401,8 @@ var $P;
                         scaled.x * u_rotation.y + scaled.y * u_rotation.x,
                         scaled.y * u_rotation.y - scaled.x * u_rotation.x
                     );
-                    vec2 toZero = rotated + u_offset; //Turn the rotated position into WebGL canvas coordinates using u_offset.
-                    vec2 zeroToOne = toZero / u_resolution; //Turn position into a position between 0 and 1, using u_resolution.
-                    vec2 zeroToTwo = zeroToOne * 2.0; //Convert 0 to 1 to 0 to 2
-                    vec2 clipSpace = zeroToTwo - 1.0; //Convert 0 to 2 to -1 to 1 clip space coordinates.
+                    vec2 offset = rotated + u_offset; //Move the rotated position to the proper location on the canvas.
+                    vec2 clipSpace = offset / (u_resolution / 2.0); //Turn the offset position into a clipspace position.
 
                     gl_Position = vec4(clipSpace, 0, 1); //Send the clip space position to the fragment shader.
                     v_texCoord = a_texCoord; //Pass the texture coordinate through.
@@ -1478,26 +1476,6 @@ var $P;
             this.gl.clearColor(arr[0], arr[1], arr[2], arr[3]);
         }
         // METHODS
-        /* CENTER METHOD
-         *
-         * Parameters: Pair or array of length 2 describing point to center on.
-         *
-         * The center method sets the Camera's stagePos property in order to center the Camera on the
-         * provided point on the stage.
-         */
-        center(pos) {
-            this.stagePos.x = pos[0] - this.dimensions.x / 2;
-            this.stagePos.y = pos[1] - this.dimensions.y / 2;
-        }
-        /* CENTEREX METHOD
-         *
-         * Parameters: x coordinate of point to center on, y coordinate of point to center on
-         *
-         * Same as center method, but x and y coordinates are split up. Unnecessary?
-         */
-        centerEx(x, y) {
-            this.center([x, y]);
-        }
         /* RESIZE METHOD
          *
          * Parameters: Pair or array of length 2 describing desired width and height of the camera.
@@ -1525,7 +1503,7 @@ var $P;
             this.gl.scissor(this.canvasPos.x, this.canvasPos.y, this.dimensions.x, this.dimensions.y); //Set the scissoring dimensions
             this.gl.clear(this.gl.COLOR_BUFFER_BIT); //Clear the viewport
             this.stage.props.forEach(prop => {
-                let rel = $P.Coord.subtract($P.Coord.multiply(prop.pos.copy(), this.scale), this.stagePos); //Calculate Prop's position on the canvas
+                let rel = $P.Coord.multiply($P.Coord.subtract(prop.pos.copy(), this.stagePos), this.scale); //Calculate Prop's position on the canvas
                 if (prop.draw(rel, this)) { //Call Prop's draw method, continue if returns true
                     let program = (prop.renderInfo.program) ? prop.renderInfo.program : this.canvas.defaultProgram;
                     let vao = (prop.renderInfo.vao) ? prop.renderInfo.vao : this.canvas.getDataStore(prop.type).vao;
