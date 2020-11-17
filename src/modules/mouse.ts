@@ -6,7 +6,7 @@ namespace $P {
         middle: boolean,
         right: boolean,
         pos: Coord,
-        relPos(cam: Camera): Coord,
+        relPos(cam: Camera): Pair,
         relX(cam: Camera): number,
         relY(cam: Camera): number,
         init: Function
@@ -15,20 +15,18 @@ namespace $P {
         middle: false, //State of middle mouse button
         right: false, //State of right mouse button
         pos: undefined, //Mouse position Coord
-        relPos: function(cam: Camera): Coord { //Inefficient(?) method to get position of mouse in stage relative to cam (Camera)
-            let canvasBounds = cam.canvas.el.getBoundingClientRect();
-            
-            return new Coord(cam.scale.x * (this.pos.x - canvasBounds.left - cam.canvasPos.x) + cam.stagePos.x, cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y);
-        },
-        relX: function(cam: Camera): number {
+        relX: function(cam: Camera): number { //Get mouse X position in Stage as drawn by cam
             let canvasBounds = cam.canvas.el.getBoundingClientRect();
 
-            return cam.scale.x * (this.pos.x - canvasBounds.left - cam.canvasPos.x) + cam.stagePos.x;
+            return (this.pos.x - canvasBounds.left - cam.canvasPos.x - cam.dimensions.x / 2) / cam.scale.x + cam.stagePos.x;
         },
-        relY: function(cam: Camera): number {
+        relY: function(cam: Camera): number { //Get mouse Y position in Stage as drawn by cam
             let canvasBounds = cam.canvas.el.getBoundingClientRect();
 
-            return -(cam.scale.y * (this.pos.y - canvasBounds.top - cam.canvasPos.y) + cam.stagePos.y);
+            return -(this.pos.y - canvasBounds.top - (cam.canvas.height - cam.canvasPos.y - cam.dimensions.y) - cam.dimensions.y / 2) / cam.scale.y + cam.stagePos.y;
+        },
+        relPos: function(cam: Camera): Pair {
+            return new Pair(this.relX(cam), this.relY(cam));
         },
         init: function() {
             this.pos = new Coord(0, 0);
